@@ -2,9 +2,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Course } from "@/data/mockData";
 import { Badge } from "@/components/ui/badge";
 import { Clock, BookOpen } from "lucide-react";
+
+interface Course {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail?: string;
+  thumbnail_url?: string | null;
+  sessions?: Array<any>;
+  createdAt?: string;
+  created_at?: string;
+}
 
 interface CourseCardProps {
   course: Course;
@@ -15,10 +25,15 @@ interface CourseCardProps {
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ course, progress }) => {
-  const { id, title, description, thumbnail, sessions, createdAt } = course;
+  const { id, title, description } = course;
+  
+  // Handle different property naming conventions and potential undefined values
+  const thumbnail = course.thumbnail || course.thumbnail_url || "/placeholder.svg";
+  const createdDate = course.createdAt || course.created_at || new Date().toISOString();
+  const sessionsCount = course.sessions?.length || 0;
   
   // Format date
-  const formattedDate = new Date(createdAt).toLocaleDateString('en-US', {
+  const formattedDate = new Date(createdDate).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
@@ -32,6 +47,10 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, progress }) => {
             src={thumbnail} 
             alt={title}
             className="w-full h-full object-cover transition-transform hover:scale-105"
+            onError={(e) => {
+              // Fallback to placeholder if image fails to load
+              (e.target as HTMLImageElement).src = "/placeholder.svg";
+            }}
           />
         </div>
         <CardHeader className="pb-1">
@@ -43,13 +62,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, progress }) => {
         </CardHeader>
         <CardContent className="pb-2">
           <p className="text-sm text-gray-600 line-clamp-2 text-left">
-            {description}
+            {description || "No description available"}
           </p>
           
           <div className="flex items-center mt-3 text-xs text-gray-500 space-x-3">
             <div className="flex items-center">
               <BookOpen size={14} className="mr-1" />
-              <span>{sessions.length} sessions</span>
+              <span>{sessionsCount} sessions</span>
             </div>
             <div className="flex items-center">
               <Clock size={14} className="mr-1" />

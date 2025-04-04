@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -15,7 +14,6 @@ import AddCourseForm from "@/components/courses/AddCourseForm";
 import AssignCourseForm from "@/components/courses/AssignCourseForm";
 import { Button } from "@/components/ui/button";
 
-// Define types for our data
 interface Course {
   id: string;
   title: string;
@@ -68,7 +66,6 @@ const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch courses
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*");
@@ -84,7 +81,6 @@ const AdminDashboard: React.FC = () => {
         setCourses(coursesData);
       }
       
-      // Fetch students (users with role 'student')
       const { data: studentsData, error: studentsError } = await supabase
         .from("profiles")
         .select("*")
@@ -93,7 +89,6 @@ const AdminDashboard: React.FC = () => {
       if (studentsError) {
         console.error("Error fetching students:", studentsError);
       } else if (studentsData) {
-        // Fetch course assignments
         const { data: assignmentsData, error: assignmentsError } = await supabase
           .from("course_assignments")
           .select("*");
@@ -102,7 +97,6 @@ const AdminDashboard: React.FC = () => {
           console.error("Error fetching course assignments:", assignmentsError);
         }
         
-        // Fetch session progress
         const { data: progressData, error: progressError } = await supabase
           .from("session_progress")
           .select("*");
@@ -113,7 +107,6 @@ const AdminDashboard: React.FC = () => {
           setSessionProgress(progressData);
         }
         
-        // Process student data with their assigned courses
         const processedStudents = studentsData.map(student => {
           const studentAssignments = assignmentsData?.filter(
             assignment => assignment.student_id === student.id
@@ -142,7 +135,6 @@ const AdminDashboard: React.FC = () => {
   };
   
   useEffect(() => {
-    // Filter students based on search query (name or phone)
     if (!searchQuery) {
       setFilteredStudents(students);
       return;
@@ -161,17 +153,13 @@ const AdminDashboard: React.FC = () => {
   };
   
   const calculateStudentProgress = (student: Student) => {
-    // Get all sessions from courses assigned to this student
     const studentCourseIds = student.assignedCourses || [];
     if (studentCourseIds.length === 0) return 0;
     
-    // Get completed sessions for this student
     const completedSessions = sessionProgress.filter(
       progress => progress.student_id === student.id
     ).length;
     
-    // For simplicity, we'll calculate based on assignments rather than 
-    // total possible sessions (which would require additional queries)
     return studentCourseIds.length > 0 ? 
       Math.round((completedSessions / studentCourseIds.length) * 100) : 0;
   };
@@ -238,7 +226,8 @@ const AdminDashboard: React.FC = () => {
                       id: course.id,
                       title: course.title,
                       description: course.description,
-                      thumbnail_url: course.thumbnail_url
+                      thumbnail_url: course.thumbnail_url,
+                      created_at: course.created_at
                     }} 
                   />
                 ))}
