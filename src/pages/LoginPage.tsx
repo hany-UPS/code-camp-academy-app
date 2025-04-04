@@ -3,10 +3,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
+import SignupForm from "@/components/auth/SignupForm";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // This will create a test admin user on first run
 const createAdminUser = async () => {
@@ -46,15 +48,55 @@ const createAdminUser = async () => {
   }
 };
 
+// Create a test student user
+const createStudentUser = async () => {
+  try {
+    // Check if student@example.com already exists
+    const { data: { user }, error: checkError } = await supabase.auth.signUp({
+      email: 'student@example.com',
+      password: 'password123',
+    });
+
+    if (checkError) {
+      if (checkError.message !== 'User already registered') {
+        console.error("Error checking student user:", checkError);
+      }
+      return;
+    }
+
+    if (user) {
+      // Ensure the role is student
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ role: 'student', name: 'Student User' })
+        .eq('id', user.id);
+
+      if (updateError) {
+        console.error("Error updating student role:", updateError);
+      } else {
+        console.log("Student user created successfully");
+        toast({
+          title: "Demo Student User Created",
+          description: "Email: student@example.com, Password: password123",
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error creating student user:", error);
+  }
+};
+
 const LoginPage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [initialized, setInitialized] = useState(false);
+  const [activeTab, setActiveTab] = useState("login");
   
   useEffect(() => {
-    // Create a test admin user on first load (for demo purposes)
+    // Create test users on first load (for demo purposes)
     if (!initialized) {
       createAdminUser();
+      createStudentUser();
       setInitialized(true);
     }
     
@@ -72,7 +114,20 @@ const LoginPage: React.FC = () => {
       <Header />
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <LoginForm />
+          <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Login</TabsTrigger>
+              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+            <div className="mt-6">
+              <TabsContent value="login">
+                <LoginForm />
+              </TabsContent>
+              <TabsContent value="signup">
+                <SignupForm />
+              </TabsContent>
+            </div>
+          </Tabs>
         </div>
       </main>
       <Footer />

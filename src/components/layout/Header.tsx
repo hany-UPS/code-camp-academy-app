@@ -1,126 +1,65 @@
-
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { LogOut, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const Header: React.FC = () => {
-  const { user, isAuthenticated, logout, isAdmin } = useAuth();
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  const { isAuthenticated, logout, isAdmin } = useAuth();
 
   return (
     <header className="bg-white shadow-md py-4">
       <div className="container mx-auto px-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
-          <div className="flex items-center">
-            <span className="text-academy-orange font-bold text-2xl">UPS</span>
-            <span className="text-academy-blue font-bold text-2xl">Junior</span>
-          </div>
+        <Link to="/" className="text-2xl font-bold text-academy-blue">
+          Academy
         </Link>
-        
-        {/* Mobile menu button */}
-        <button 
-          className="block md:hidden text-gray-700"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <Menu size={24} />
-        </button>
-        
-        {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link to="/" className="text-gray-700 hover:text-academy-orange transition-colors">
-            Home
-          </Link>
-          
-          {isAuthenticated ? (
-            <>
-              <Link 
-                to={isAdmin() ? "/admin-dashboard" : "/student-dashboard"} 
-                className="text-gray-700 hover:text-academy-orange transition-colors"
-              >
-                Dashboard
+
+        <nav>
+          <ul className="flex items-center space-x-6">
+            <li>
+              <Link to="/" className="hover:text-academy-blue transition-colors">
+                Home
               </Link>
-              
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-600">
-                  {user?.name} ({user?.role})
-                </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleLogout}
-                  className="text-gray-600 hover:text-red-500"
-                >
-                  <LogOut size={18} className="mr-1" /> Logout
-                </Button>
-              </div>
-            </>
-          ) : (
-            <Link to="/login">
-              <Button variant="outline">Log In</Button>
-            </Link>
-          )}
-        </nav>
-      </div>
-      
-      {/* Mobile menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white py-4 px-6 shadow-md slide-in">
-          <nav className="flex flex-col space-y-4">
-            <Link 
-              to="/" 
-              className="text-gray-700 hover:text-academy-orange transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Home
-            </Link>
-            
+            </li>
             {isAuthenticated ? (
               <>
-                <Link 
-                  to={isAdmin() ? "/admin-dashboard" : "/student-dashboard"} 
-                  className="text-gray-700 hover:text-academy-orange transition-colors"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                
-                <div className="pt-2 border-t border-gray-100">
-                  <div className="text-gray-600 mb-2">
-                    {user?.name} ({user?.role})
-                  </div>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => {
-                      handleLogout();
-                      setMenuOpen(false);
-                    }}
-                    className="text-gray-600 hover:text-red-500"
-                  >
-                    <LogOut size={18} className="mr-1" /> Logout
+                {isAdmin() ? (
+                  <li>
+                    <Link
+                      to="/admin-dashboard"
+                      className="hover:text-academy-blue transition-colors"
+                    >
+                      Admin Dashboard
+                    </Link>
+                  </li>
+                ) : (
+                  <li>
+                    <Link
+                      to="/student-dashboard"
+                      className="hover:text-academy-blue transition-colors"
+                    >
+                      Student Dashboard
+                    </Link>
+                  </li>
+                )}
+                <li>
+                  <Button variant="outline" size="sm" onClick={logout}>
+                    Logout
                   </Button>
-                </div>
+                </li>
               </>
             ) : (
-              <Link 
-                to="/login" 
-                onClick={() => setMenuOpen(false)}
-                className="inline-block"
-              >
-                <Button variant="outline">Log In</Button>
-              </Link>
+              <li>
+                <Link
+                  to="/login"
+                  className="hover:text-academy-blue transition-colors"
+                >
+                  Login/Signup
+                </Link>
+              </li>
             )}
-          </nav>
-        </div>
-      )}
+          </ul>
+        </nav>
+      </div>
     </header>
   );
 };
