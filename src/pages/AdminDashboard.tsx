@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -8,10 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import CourseCard from "@/components/courses/CourseCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserCircle, CheckCircle } from "lucide-react";
+import { Search, UserCircle, CheckCircle, FileEdit } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import AddCourseForm from "@/components/courses/AddCourseForm";
 import AssignCourseForm from "@/components/courses/AssignCourseForm";
+import SessionsManager from "@/components/courses/SessionsManager";
 import { Button } from "@/components/ui/button";
 
 interface Course {
@@ -20,6 +22,11 @@ interface Course {
   description: string | null;
   thumbnail_url: string | null;
   created_at: string;
+  sessions: Array<{
+    id: string;
+    is_active: boolean;
+  }>;
+  activeSessions: number;
 }
 
 interface Student {
@@ -48,6 +55,7 @@ const AdminDashboard: React.FC = () => {
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<{id: string; name: string; assignedCourses: string[]} | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string} | null>(null);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -66,6 +74,7 @@ const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Fetch courses with their sessions
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*");
@@ -77,9 +86,30 @@ const AdminDashboard: React.FC = () => {
           description: coursesError.message,
           variant: "destructive",
         });
-      } else if (coursesData) {
-        setCourses(coursesData);
       }
+      
+      // Fetch all sessions to count active ones for each course
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from("sessions")
+        .select("*");
+        
+      if (sessionsError) {
+        console.error("Error fetching sessions:", sessionsError);
+      }
+      
+      // Process courses with session counts
+      const processedCourses = coursesData?.map(course => {
+        const courseSessions = sessionsData?.filter(s => s.course_id === course.id) || [];
+        const activeSessionsCount = courseSessions.filter(s => s.is_active).length;
+        
+        return {
+          ...course,
+          sessions: courseSessions,
+          activeSessions: activeSessionsCount
+        };
+      }) || [];
+      
+      setCourses(processedCourses);
       
       const { data: studentsData, error: studentsError } = await supabase
         .from("profiles")
@@ -172,6 +202,13 @@ const AdminDashboard: React.FC = () => {
     });
   };
   
+  const handleManageSessions = (course: Course) => {
+    setSelectedCourse({
+      id: course.id,
+      title: course.title
+    });
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -220,16 +257,32 @@ const AdminDashboard: React.FC = () => {
             {courses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.map((course) => (
-                  <CourseCard 
-                    key={course.id} 
-                    course={{
-                      id: course.id,
-                      title: course.title,
-                      description: course.description,
-                      thumbnail_url: course.thumbnail_url,
-                      created_at: course.created_at
-                    }} 
-                  />
+                  <div key={course.id} className="relative">
+                    <CourseCard 
+                      course={{
+                        id: course.id,
+                        title: course.title,
+                        description: course.description,
+                        thumbnail_url: course.thumbnail_url,
+                        created_at: course.created_at,
+                        sessions: course.sessions
+                      }} 
+                      activeSessions={course.activeSessions}
+                    />
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      className="absolute top-2 right-2 bg-white bg-opacity-90 hover:bg-white"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleManageSessions(course);
+                      }}
+                    >
+                      <FileEdit className="h-4 w-4 mr-1" />
+                      Sessions
+                    </Button>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -321,6 +374,17 @@ const AdminDashboard: React.FC = () => {
                 onClose={() => setSelectedStudent(null)}
                 onAssignmentUpdated={fetchData}
                 assignedCourseIds={selectedStudent.assignedCourses}
+              />
+            </div>
+          </div>
+        )}
+        
+        {selectedCourse && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="max-w-4xl w-full my-8">
+              <SessionsManager
+                course={selectedCourse}
+                onClose={() => setSelectedCourse(null)}
               />
             </div>
           </div>

@@ -22,15 +22,17 @@ interface CourseCardProps {
     completed: number;
     total: number;
   };
+  activeSessions?: number; // New prop to track active sessions
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, progress }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ course, progress, activeSessions }) => {
   const { id, title, description } = course;
   
   // Handle different property naming conventions and potential undefined values
   const thumbnail = course.thumbnail || course.thumbnail_url || "/placeholder.svg";
   const createdDate = course.createdAt || course.created_at || new Date().toISOString();
   const sessionsCount = course.sessions?.length || 0;
+  const activeSessionsCount = activeSessions !== undefined ? activeSessions : sessionsCount;
   
   // Format date
   const formattedDate = new Date(createdDate).toLocaleDateString('en-US', {
@@ -68,7 +70,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, progress }) => {
           <div className="flex items-center mt-3 text-xs text-gray-500 space-x-3">
             <div className="flex items-center">
               <BookOpen size={14} className="mr-1" />
-              <span>{sessionsCount} sessions</span>
+              <span>{activeSessionsCount} sessions</span>
             </div>
             <div className="flex items-center">
               <Clock size={14} className="mr-1" />

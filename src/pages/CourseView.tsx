@@ -8,7 +8,7 @@ import Footer from "@/components/layout/Footer";
 import VideoPlayer from "@/components/ui/VideoPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Lock, CheckCircle, Youtube } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, CheckCircle, Youtube, EyeOff } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface Session {
@@ -17,6 +17,7 @@ interface Session {
   description: string | null;
   video_url: string;
   sequence_order: number;
+  is_active: boolean;
 }
 
 interface Course {
@@ -37,6 +38,7 @@ const CourseView: React.FC = () => {
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [completedSessions, setCompletedSessions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visibleSessions, setVisibleSessions] = useState<Session[]>([]);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -66,11 +68,19 @@ const CourseView: React.FC = () => {
           return;
         }
         
-        // Fetch sessions for this course
-        const { data: sessionsData, error: sessionsError } = await supabase
+        // Build query for sessions
+        let query = supabase
           .from("sessions")
           .select("*")
-          .eq("course_id", courseId)
+          .eq("course_id", courseId);
+        
+        // Only filter by is_active for students
+        if (user && user.role === "student") {
+          query = query.eq("is_active", true);
+        }
+        
+        // Fetch sessions
+        const { data: sessionsData, error: sessionsError } = await query
           .order("sequence_order", { ascending: true });
           
         if (sessionsError) {
@@ -86,9 +96,10 @@ const CourseView: React.FC = () => {
         if (!sessionsData || sessionsData.length === 0) {
           toast({
             title: "No Content",
-            description: "This course doesn't have any sessions yet",
+            description: "This course doesn't have any active sessions yet",
             variant: "default",
           });
+          setVisibleSessions([]);
         } else {
           const completeData: Course = {
             ...courseData,
@@ -96,6 +107,7 @@ const CourseView: React.FC = () => {
           };
           
           setCourse(completeData);
+          setVisibleSessions(sessionsData);
           setActiveSession(sessionsData[0]);
         }
         
@@ -134,10 +146,10 @@ const CourseView: React.FC = () => {
   };
   
   const handleNextSession = () => {
-    if (course && activeSessionIndex < course.sessions.length - 1) {
+    if (visibleSessions && activeSessionIndex < visibleSessions.length - 1) {
       const nextIndex = activeSessionIndex + 1;
       setActiveSessionIndex(nextIndex);
-      setActiveSession(course.sessions[nextIndex]);
+      setActiveSession(visibleSessions[nextIndex]);
     }
   };
   
@@ -145,7 +157,7 @@ const CourseView: React.FC = () => {
     if (activeSessionIndex > 0) {
       const prevIndex = activeSessionIndex - 1;
       setActiveSessionIndex(prevIndex);
-      setActiveSession(course.sessions[prevIndex]);
+      setActiveSession(visibleSessions[prevIndex]);
     }
   };
   
@@ -207,18 +219,66 @@ const CourseView: React.FC = () => {
               {originalUrl}
             </a>
           </div>
+          {!activeSession.is_active && (
+            <div className="mt-2 text-sm flex items-center text-amber-600">
+              <EyeOff className="h-4 w-4 mr-1" />
+              This session is currently hidden from students
+            </div>
+          )}
         </div>
       );
     }
     return null;
   };
   
-  if (loading || !course || !activeSession) {
+  if (loading || !course) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
           <p>Loading course...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // If no active sessions are available
+  if (!activeSession && visibleSessions.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-8">
+          <Button
+            variant="ghost"
+            className="mb-4 text-gray-600"
+            onClick={() => navigate(-1)}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back
+          </Button>
+          
+          <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
+          <p className="text-gray-600 mb-6">{course.description}</p>
+          
+          <div className="text-center p-12 bg-gray-50 rounded-lg">
+            <h2 className="text-xl font-medium text-gray-700 mb-2">
+              No active sessions available
+            </h2>
+            <p className="text-gray-500">
+              {user?.role === "admin" 
+                ? "You haven't created any sessions for this course yet. Add a session to get started."
+                : "This course doesn't have any content available yet. Check back later."}
+            </p>
+            {user?.role === "admin" && (
+              <Button 
+                onClick={() => navigate("/admin-dashboard")} 
+                className="mt-4"
+              >
+                Go to Admin Dashboard
+              </Button>
+            )}
+          </div>
         </main>
         <Footer />
       </div>
@@ -244,40 +304,44 @@ const CourseView: React.FC = () => {
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <VideoPlayer 
-              videoUrl={activeSession.video_url}
-              sessionId={activeSession.id}
-              onComplete={handleSessionComplete}
-              isCompleted={isSessionCompleted(activeSession.id)}
-            />
-            
-            <div className="mt-6">
-              <h2 className="text-2xl font-bold mb-3">{activeSession.title}</h2>
-              <p className="text-gray-600 mb-4">{activeSession.description}</p>
-              {renderYouTubeLink()}
-            </div>
-            
-            <div className="mt-6 flex justify-between">
-              <Button
-                variant="outline"
-                onClick={handlePrevSession}
-                disabled={activeSessionIndex === 0}
-                className={activeSessionIndex === 0 ? "opacity-50 cursor-not-allowed" : ""}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Previous Session
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={handleNextSession}
-                disabled={activeSessionIndex === course.sessions.length - 1}
-                className={activeSessionIndex === course.sessions.length - 1 ? "opacity-50 cursor-not-allowed" : ""}
-              >
-                Next Session
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            {activeSession && (
+              <>
+                <VideoPlayer 
+                  videoUrl={activeSession.video_url}
+                  sessionId={activeSession.id}
+                  onComplete={handleSessionComplete}
+                  isCompleted={isSessionCompleted(activeSession.id)}
+                />
+                
+                <div className="mt-6">
+                  <h2 className="text-2xl font-bold mb-3">{activeSession.title}</h2>
+                  <p className="text-gray-600 mb-4">{activeSession.description}</p>
+                  {renderYouTubeLink()}
+                </div>
+                
+                <div className="mt-6 flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevSession}
+                    disabled={activeSessionIndex === 0}
+                    className={activeSessionIndex === 0 ? "opacity-50 cursor-not-allowed" : ""}
+                  >
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Previous Session
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleNextSession}
+                    disabled={activeSessionIndex === visibleSessions.length - 1}
+                    className={activeSessionIndex === visibleSessions.length - 1 ? "opacity-50 cursor-not-allowed" : ""}
+                  >
+                    Next Session
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
           
           <div className="lg:col-span-1">
@@ -285,12 +349,12 @@ const CourseView: React.FC = () => {
               <h3 className="font-bold text-lg mb-4">Course Sessions</h3>
               
               <ul className="space-y-2">
-                {course.sessions.map((session, index) => (
+                {visibleSessions.map((session, index) => (
                   <li key={session.id}>
                     <button
                       onClick={() => handleSessionClick(session, index)}
                       className={`w-full text-left p-3 rounded-md flex items-start transition-colors ${
-                        activeSession.id === session.id
+                        activeSession?.id === session.id
                           ? "bg-academy-light-orange border-l-4 border-academy-orange"
                           : "hover:bg-gray-100"
                       }`}
@@ -300,6 +364,11 @@ const CourseView: React.FC = () => {
                           <span className="font-medium">
                             {index + 1}. {session.title}
                           </span>
+                          {user?.role === "admin" && !session.is_active && (
+                            <span className="ml-2 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-xs">
+                              Hidden
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-500 mt-1 line-clamp-1">
                           {session.description}
@@ -324,8 +393,8 @@ const CourseView: React.FC = () => {
                   </span>
                   <span className="text-sm font-medium">
                     {completedSessions.filter(id => 
-                      course.sessions.some(s => s.id === id)
-                    ).length} of {course.sessions.length} completed
+                      visibleSessions.some(s => s.id === id)
+                    ).length} of {visibleSessions.length} completed
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
@@ -333,8 +402,8 @@ const CourseView: React.FC = () => {
                     className="bg-academy-blue h-2.5 rounded-full" 
                     style={{ 
                       width: `${(completedSessions.filter(id => 
-                        course.sessions.some(s => s.id === id)
-                      ).length / course.sessions.length) * 100}%` 
+                        visibleSessions.some(s => s.id === id)
+                      ).length / (visibleSessions.length || 1)) * 100}%` 
                     }}
                   />
                 </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -16,12 +17,14 @@ interface Course {
     completed: number;
     total: number;
   };
+  activeSessions?: number;
 }
 
 interface Session {
   id: string;
   title: string;
   course_id: string;
+  is_active: boolean;
 }
 
 const StudentDashboard: React.FC = () => {
@@ -124,16 +127,18 @@ const StudentDashboard: React.FC = () => {
         // Map course data with progress
         const coursesWithProgress = coursesData?.map(course => {
           const sessions = sessionsByCourse[course.id] || [];
-          const completedCount = sessions.filter(s => completedSessionIds.has(s.id)).length;
+          const activeSessions = sessions.filter(s => s.is_active);
+          const completedCount = activeSessions.filter(s => completedSessionIds.has(s.id)).length;
           
           return {
             id: course.id,
             title: course.title,
             description: course.description,
             thumbnail_url: course.thumbnail_url,
+            activeSessions: activeSessions.length,
             progress: {
               completed: completedCount,
-              total: sessions.length || 1
+              total: activeSessions.length || 1
             }
           };
         }) || [];
@@ -184,7 +189,8 @@ const StudentDashboard: React.FC = () => {
                 <CourseCard 
                   key={course.id} 
                   course={course}
-                  progress={course.progress} 
+                  progress={course.progress}
+                  activeSessions={course.activeSessions}
                 />
               ))}
             </div>
