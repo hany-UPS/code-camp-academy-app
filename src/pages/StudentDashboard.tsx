@@ -13,7 +13,7 @@ interface Course {
   title: string;
   description: string | null;
   thumbnail_url: string | null;
-  progress: {
+  progress?: {
     completed: number;
     total: number;
   };
@@ -56,10 +56,17 @@ const StudentDashboard: React.FC = () => {
           
         if (assignmentsError) {
           console.error("Error fetching assignments:", assignmentsError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch your course assignments",
+            variant: "destructive",
+          });
+          setLoading(false);
           return;
         }
         
         if (!assignments || assignments.length === 0) {
+          setAssignedCourses([]);
           setLoading(false);
           return;
         }
@@ -74,6 +81,12 @@ const StudentDashboard: React.FC = () => {
           
         if (coursesError) {
           console.error("Error fetching courses:", coursesError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch course details",
+            variant: "destructive",
+          });
+          setLoading(false);
           return;
         }
         
@@ -115,10 +128,13 @@ const StudentDashboard: React.FC = () => {
           const completedCount = sessions.filter(s => completedSessionIds.has(s.id)).length;
           
           return {
-            ...course,
+            id: course.id,
+            title: course.title,
+            description: course.description,
+            thumbnail_url: course.thumbnail_url,
             progress: {
               completed: completedCount,
-              total: sessions.length
+              total: sessions.length || 1
             }
           };
         }) || [];
@@ -168,7 +184,7 @@ const StudentDashboard: React.FC = () => {
               {assignedCourses.map((course) => (
                 <CourseCard 
                   key={course.id} 
-                  course={course} 
+                  course={course}
                   progress={course.progress} 
                 />
               ))}

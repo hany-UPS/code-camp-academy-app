@@ -13,6 +13,7 @@ const SignupForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -27,6 +28,7 @@ const SignupForm: React.FC = () => {
         options: {
           data: {
             name,
+            phone,
           }
         }
       });
@@ -39,6 +41,18 @@ const SignupForm: React.FC = () => {
         });
         throw error;
       }
+
+      // Update profile with phone number
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ phone })
+          .eq('id', data.user.id);
+
+        if (profileError) {
+          console.error("Error updating profile:", profileError);
+        }
+      }
       
       toast({
         title: "Sign up successful!",
@@ -47,7 +61,6 @@ const SignupForm: React.FC = () => {
       });
       
       // Navigate to login page or directly log in the user
-      // For now, we'll navigate back to login
       navigate("/login");
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -87,6 +100,17 @@ const SignupForm: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="rounded-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input
+              id="phone"
+              type="tel"
+              placeholder="+1234567890"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               className="rounded-md"
             />
           </div>

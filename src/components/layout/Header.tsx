@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -23,14 +24,16 @@ const Header: React.FC = () => {
             {isAuthenticated ? (
               <>
                 {isAdmin() ? (
-                  <li>
-                    <Link
-                      to="/admin-dashboard"
-                      className="hover:text-academy-blue transition-colors"
-                    >
-                      Admin Dashboard
-                    </Link>
-                  </li>
+                  <>
+                    <li>
+                      <Link
+                        to="/admin-dashboard"
+                        className="hover:text-academy-blue transition-colors"
+                      >
+                        Admin Dashboard
+                      </Link>
+                    </li>
+                  </>
                 ) : (
                   <li>
                     <Link

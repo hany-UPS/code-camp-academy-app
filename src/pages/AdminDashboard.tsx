@@ -11,6 +11,9 @@ import CourseCard from "@/components/courses/CourseCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, UserCircle, CheckCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import AddCourseForm from "@/components/courses/AddCourseForm";
+import AssignCourseForm from "@/components/courses/AssignCourseForm";
+import { Button } from "@/components/ui/button";
 
 // Define types for our data
 interface Course {
@@ -45,6 +48,8 @@ const AdminDashboard: React.FC = () => {
   const [sessionProgress, setSessionProgress] = useState<SessionProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [showAddCourse, setShowAddCourse] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<{id: string; name: string; assignedCourses: string[]} | null>(null);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -57,83 +62,84 @@ const AdminDashboard: React.FC = () => {
       return;
     }
     
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Fetch courses
-        const { data: coursesData, error: coursesError } = await supabase
-          .from("courses")
-          .select("*");
-          
-        if (coursesError) {
-          console.error("Error fetching courses:", coursesError);
-          toast({
-            title: "Error fetching courses",
-            description: coursesError.message,
-            variant: "destructive",
-          });
-        } else if (coursesData) {
-          setCourses(coursesData);
-        }
-        
-        // Fetch students (users with role 'student')
-        const { data: studentsData, error: studentsError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("role", "student");
-          
-        if (studentsError) {
-          console.error("Error fetching students:", studentsError);
-        } else if (studentsData) {
-          // Fetch course assignments
-          const { data: assignmentsData, error: assignmentsError } = await supabase
-            .from("course_assignments")
-            .select("*");
-            
-          if (assignmentsError) {
-            console.error("Error fetching course assignments:", assignmentsError);
-          }
-          
-          // Fetch session progress
-          const { data: progressData, error: progressError } = await supabase
-            .from("session_progress")
-            .select("*");
-            
-          if (progressError) {
-            console.error("Error fetching session progress:", progressError);
-          } else if (progressData) {
-            setSessionProgress(progressData);
-          }
-          
-          // Process student data with their assigned courses
-          const processedStudents = studentsData.map(student => {
-            const studentAssignments = assignmentsData?.filter(
-              assignment => assignment.student_id === student.id
-            ) || [];
-            
-            return {
-              ...student,
-              assignedCourses: studentAssignments.map(a => a.course_id)
-            };
-          });
-          
-          setStudents(processedStudents);
-          setCourseAssignments(assignmentsData || []);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch data. Please try again.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchData();
   }, [user, isAuthenticated, navigate]);
+  
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // Fetch courses
+      const { data: coursesData, error: coursesError } = await supabase
+        .from("courses")
+        .select("*");
+        
+      if (coursesError) {
+        console.error("Error fetching courses:", coursesError);
+        toast({
+          title: "Error fetching courses",
+          description: coursesError.message,
+          variant: "destructive",
+        });
+      } else if (coursesData) {
+        setCourses(coursesData);
+      }
+      
+      // Fetch students (users with role 'student')
+      const { data: studentsData, error: studentsError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "student");
+        
+      if (studentsError) {
+        console.error("Error fetching students:", studentsError);
+      } else if (studentsData) {
+        // Fetch course assignments
+        const { data: assignmentsData, error: assignmentsError } = await supabase
+          .from("course_assignments")
+          .select("*");
+          
+        if (assignmentsError) {
+          console.error("Error fetching course assignments:", assignmentsError);
+        }
+        
+        // Fetch session progress
+        const { data: progressData, error: progressError } = await supabase
+          .from("session_progress")
+          .select("*");
+          
+        if (progressError) {
+          console.error("Error fetching session progress:", progressError);
+        } else if (progressData) {
+          setSessionProgress(progressData);
+        }
+        
+        // Process student data with their assigned courses
+        const processedStudents = studentsData.map(student => {
+          const studentAssignments = assignmentsData?.filter(
+            assignment => assignment.student_id === student.id
+          ) || [];
+          
+          return {
+            ...student,
+            assignedCourses: studentAssignments.map(a => a.course_id)
+          };
+        });
+        
+        setStudents(processedStudents);
+        setFilteredStudents(processedStudents);
+        setCourseAssignments(assignmentsData || []);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
     // Filter students based on search query (name or phone)
@@ -169,6 +175,14 @@ const AdminDashboard: React.FC = () => {
     return studentCourseIds.length > 0 ? 
       Math.round((completedSessions / studentCourseIds.length) * 100) : 0;
   };
+
+  const handleEditAssignments = (student: Student) => {
+    setSelectedStudent({
+      id: student.id,
+      name: student.name || "Unnamed Student",
+      assignedCourses: student.assignedCourses || []
+    });
+  };
   
   if (loading) {
     return (
@@ -198,18 +212,35 @@ const AdminDashboard: React.FC = () => {
           <TabsContent value="courses">
             <div className="mb-6 flex justify-between items-center">
               <h2 className="text-2xl font-semibold">All Courses</h2>
-              <button
+              <Button
                 className="bg-academy-orange hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
-                onClick={() => alert("Add course functionality would be implemented here")}
+                onClick={() => setShowAddCourse(true)}
               >
                 Add New Course
-              </button>
+              </Button>
             </div>
+            
+            {showAddCourse && (
+              <div className="mb-6">
+                <AddCourseForm 
+                  onClose={() => setShowAddCourse(false)}
+                  onCoursesUpdated={fetchData}
+                />
+              </div>
+            )}
             
             {courses.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
+                  <CourseCard 
+                    key={course.id} 
+                    course={{
+                      id: course.id,
+                      title: course.title,
+                      description: course.description,
+                      thumbnail_url: course.thumbnail_url
+                    }} 
+                  />
                 ))}
               </div>
             ) : (
@@ -271,9 +302,13 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         
                         <div className="mt-4 flex justify-end">
-                          <button className="text-academy-blue hover:text-blue-700 text-sm font-medium">
+                          <Button 
+                            onClick={() => handleEditAssignments(student)}
+                            className="text-academy-blue hover:text-blue-700 text-sm font-medium"
+                            variant="ghost"
+                          >
                             Edit Assignments
-                          </button>
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -287,6 +322,20 @@ const AdminDashboard: React.FC = () => {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {selectedStudent && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="max-w-2xl w-full">
+              <AssignCourseForm
+                studentId={selectedStudent.id}
+                studentName={selectedStudent.name}
+                onClose={() => setSelectedStudent(null)}
+                onAssignmentUpdated={fetchData}
+                assignedCourseIds={selectedStudent.assignedCourses}
+              />
+            </div>
+          </div>
+        )}
       </main>
       
       <Footer />
