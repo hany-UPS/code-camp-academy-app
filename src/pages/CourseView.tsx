@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { mockCourses, mockStudents, Session } from "@/data/mockData";
+import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import VideoPlayer from "@/components/ui/VideoPlayer";
@@ -11,43 +11,121 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Lock, CheckCircle, Youtube } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
+interface Session {
+  id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+  sequence_order: number;
+}
+
+interface Course {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  sessions: Session[];
+}
+
 const CourseView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
-  const [course, setCourse] = useState<any>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [activeSession, setActiveSession] = useState<Session | null>(null);
   const [activeSessionIndex, setActiveSessionIndex] = useState(0);
   const [completedSessions, setCompletedSessions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     if (!isAuthenticated) {
       navigate("/login");
       return;
     }
-    
-    // Find course
-    const foundCourse = mockCourses.find((c) => c.id === courseId);
-    
-    if (!foundCourse) {
+
+    if (!courseId) {
       navigate("/not-found");
       return;
     }
     
-    setCourse(foundCourse);
-    setActiveSession(foundCourse.sessions[0]);
-    
-    // If student, check for completed sessions
-    if (user && user.role === "student") {
-      const studentData = mockStudents.find((s) => s.email === user.email);
-      if (studentData) {
-        const courseProgress = studentData.progress.find((p) => p.courseId === courseId);
-        if (courseProgress) {
-          setCompletedSessions(courseProgress.sessionsCompleted);
+    const fetchCourseData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch course details
+        const { data: courseData, error: courseError } = await supabase
+          .from("courses")
+          .select("*")
+          .eq("id", courseId)
+          .single();
+          
+        if (courseError || !courseData) {
+          console.error("Error fetching course:", courseError);
+          navigate("/not-found");
+          return;
         }
+        
+        // Fetch sessions for this course
+        const { data: sessionsData, error: sessionsError } = await supabase
+          .from("sessions")
+          .select("*")
+          .eq("course_id", courseId)
+          .order("sequence_order", { ascending: true });
+          
+        if (sessionsError) {
+          console.error("Error fetching sessions:", sessionsError);
+          toast({
+            title: "Error",
+            description: "Failed to load course sessions",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        if (!sessionsData || sessionsData.length === 0) {
+          toast({
+            title: "No Content",
+            description: "This course doesn't have any sessions yet",
+            variant: "default",
+          });
+        } else {
+          const completeData: Course = {
+            ...courseData,
+            sessions: sessionsData
+          };
+          
+          setCourse(completeData);
+          setActiveSession(sessionsData[0]);
+        }
+        
+        // If student, fetch completed sessions
+        if (user && user.role === "student") {
+          const { data: progressData, error: progressError } = await supabase
+            .from("session_progress")
+            .select("session_id")
+            .eq("student_id", user.id);
+            
+          if (progressError) {
+            console.error("Error fetching session progress:", progressError);
+          } else if (progressData) {
+            setCompletedSessions(progressData.map(p => p.session_id));
+          }
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error("Error in fetchCourseData:", error);
+        setLoading(false);
+        toast({
+          title: "Error",
+          description: "Failed to load course data",
+          variant: "destructive",
+        });
       }
-    }
+    };
+    
+    fetchCourseData();
   }, [courseId, isAuthenticated, navigate, user]);
   
   const handleSessionClick = (session: Session, index: number) => {
@@ -71,15 +149,38 @@ const CourseView: React.FC = () => {
     }
   };
   
-  const handleSessionComplete = (sessionId: string) => {
+  const handleSessionComplete = async (sessionId: string) => {
+    if (!user) return;
+    
     if (!completedSessions.includes(sessionId)) {
-      setCompletedSessions([...completedSessions, sessionId]);
-      
-      // In a real app, this would save to the backend
-      toast({
-        title: "Progress Saved!",
-        description: "Your course progress has been updated.",
-      });
+      try {
+        // Record session completion in the database
+        const { error } = await supabase
+          .from("session_progress")
+          .insert({
+            student_id: user.id,
+            session_id: sessionId
+          });
+          
+        if (error) {
+          console.error("Error recording session progress:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save your progress",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        setCompletedSessions([...completedSessions, sessionId]);
+        
+        toast({
+          title: "Progress Saved!",
+          description: "Your course progress has been updated.",
+        });
+      } catch (error) {
+        console.error("Error in handleSessionComplete:", error);
+      }
     }
   };
   
@@ -89,7 +190,7 @@ const CourseView: React.FC = () => {
   
   const renderYouTubeLink = () => {
     if (user?.role === "admin" && activeSession) {
-      const originalUrl = activeSession.videoUrl.replace("embed/", "watch?v=");
+      const originalUrl = activeSession.video_url.replace("embed/", "watch?v=");
       return (
         <div className="mt-4 p-3 bg-gray-100 rounded-md">
           <div className="flex items-center justify-between">
@@ -112,7 +213,7 @@ const CourseView: React.FC = () => {
     return null;
   };
   
-  if (!course || !activeSession) {
+  if (loading || !course || !activeSession) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -144,7 +245,7 @@ const CourseView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <VideoPlayer 
-              videoUrl={activeSession.videoUrl}
+              videoUrl={activeSession.video_url}
               sessionId={activeSession.id}
               onComplete={handleSessionComplete}
               isCompleted={isSessionCompleted(activeSession.id)}
@@ -184,7 +285,7 @@ const CourseView: React.FC = () => {
               <h3 className="font-bold text-lg mb-4">Course Sessions</h3>
               
               <ul className="space-y-2">
-                {course.sessions.map((session: Session, index: number) => (
+                {course.sessions.map((session, index) => (
                   <li key={session.id}>
                     <button
                       onClick={() => handleSessionClick(session, index)}
@@ -222,14 +323,18 @@ const CourseView: React.FC = () => {
                     Progress:
                   </span>
                   <span className="text-sm font-medium">
-                    {completedSessions.length} of {course.sessions.length} completed
+                    {completedSessions.filter(id => 
+                      course.sessions.some(s => s.id === id)
+                    ).length} of {course.sessions.length} completed
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
                   <div 
                     className="bg-academy-blue h-2.5 rounded-full" 
                     style={{ 
-                      width: `${(completedSessions.length / course.sessions.length) * 100}%` 
+                      width: `${(completedSessions.filter(id => 
+                        course.sessions.some(s => s.id === id)
+                      ).length / course.sessions.length) * 100}%` 
                     }}
                   />
                 </div>
