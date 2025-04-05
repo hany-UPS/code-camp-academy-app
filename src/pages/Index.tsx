@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -653,4 +654,164 @@ const Index: React.FC = () => {
                     required
                   >
                     <option value="7-9">7-9</option>
-                    <option value
+                    <option value="10-12">10-12</option>
+                    <option value="13-15">13-15</option>
+                    <option value="16-18">16-18</option>
+                    <option value="19-40">19-40</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <select 
+                    id="branch" 
+                    name="branch" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Select a branch</option>
+                    <option value="El minia">El minia</option>
+                    <option value="new_El minia">New minia</option>
+                    <option value="smaluat">Smaluat</option>
+                    <option value="magagh">Magagh</option>
+                    <option value="bany_mazar">Bani Mazar</option>
+                    <option value="abo_gurags">Abu Qurqas</option>
+                    <option value="mallya">Mallawi</option>
+                    <option value="online">Online</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Have you taken a course with us before?</label>
+                <div className="yes-no-buttons">
+                  <button 
+                    type="button" 
+                    className={continueCourse ? "active" : ""} 
+                    onClick={() => toggleCourseInput(true)}
+                  >
+                    Yes
+                  </button>
+                  <button 
+                    type="button" 
+                    className={!continueCourse ? "active" : ""} 
+                    onClick={() => toggleCourseInput(false)}
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+
+              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
+                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">Previous course name</label>
+                <input 
+                  type="text" 
+                  id="course" 
+                  name="course" 
+                  placeholder="Enter the course name" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">Course Plan *</label>
+                <select 
+                  id="course-Pric-sel" 
+                  name="course-Pric-sel" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a plan</option>
+                  <option value="Private 2000">Private Basic - 2000 EGP/month</option>
+                  <option value="Private 3400">Private Advanced - 3400 EGP/month</option>
+                  <option value="Private 7500">Private Special - 7500 EGP/month</option>
+                  <option value="General 600">General Basic - 600 EGP/month</option>
+                  <option value="General 1530">General Advanced - 1530 EGP/month</option>
+                  <option value="General 2250">General Special - 2250 EGP/month</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end">
+                <Button 
+                  type="submit" 
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
+                >
+                  Submit Booking
+                </Button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section className="content" id="faq">
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">FAQs</h2>
+          <div className="faq-container max-w-4xl mx-auto">
+            <div className="faq" data-color="rgba(255, 165, 0, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'orange'}}>▶</div>
+                What age group are your courses designed for?
+              </div>
+              <div className="faq-content">Our courses are tailored for children aged 7-17 years...</div>
+            </div>
+            
+            <div className="faq" data-color="rgba(255, 99, 71, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'red'}}>▶</div>
+                When does the course start?
+              </div>
+              <div className="faq-content">After registration, we will contact you via WhatsApp once the group is formed.</div>
+            </div>
+            
+            <div className="faq" data-color="rgba(60, 179, 113, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'darkgreen'}}>▶</div>
+                How are the course schedules determined?
+              </div>
+              <div className="faq-content">Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.</div>
+            </div>
+            
+            <div className="faq" data-color="rgba(218, 165, 32, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'goldenrod'}}>▶</div>
+                Is there a sibling discount?
+              </div>
+              <div className="faq-content">Yes, there is a 10% discount.</div>
+            </div>
+            
+            <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
+                How do I know which course is right for my child?
+              </div>
+              <div className="faq-content">We offer a free assessment session to determine the most suitable course based on your child's interests and abilities.</div>
+            </div>
+          </div>
+        </section>
+
+        {/* WhatsApp Float Button */}
+        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/767px-WhatsApp.svg.png" alt="WhatsApp" />
+        </a>
+      </main>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Index;
