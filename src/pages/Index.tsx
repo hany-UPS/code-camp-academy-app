@@ -1,9 +1,10 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import "@/styles/home.css";
 
 const Index: React.FC = () => {
@@ -208,12 +209,47 @@ const Index: React.FC = () => {
     });
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would normally process the form data, perhaps send it to an API
-    console.log('Form submitted');
-    handleCloseForm();
-    // You could add a toast notification or other feedback here
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const name = formData.get('name') as string;
+    const phone = formData.get('phone') as string;
+    const age = formData.get('age') as string;
+    const branch = formData.get('branch') as string;
+    const plan = formData.get('course-Pric-sel') as string;
+
+    const previousCourseButton = document.querySelector('.yes-no-buttons .active');
+    const previousCourse = previousCourseButton && previousCourseButton.textContent === 'Yes';
+    const course = previousCourse ? formData.get('course') as string : null;
+
+    // Validate input data
+    if (!name || !phone || !age || !branch || !plan) {
+      toast.error('Please fill out all required fields.');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([{ 
+          name, 
+          age, 
+          phone, 
+          previous_course: previousCourse, 
+          branch, 
+          course, 
+          plan 
+        }]);
+
+      if (error) throw error;
+
+      toast.success('Booking submitted successfully!');
+      handleCloseForm();
+    } catch (error) {
+      console.error('Error submitting booking:', error);
+      toast.error('There was an error submitting your booking. Please try again.');
+    }
   };
 
   return (
@@ -618,147 +654,4 @@ const Index: React.FC = () => {
             <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
               <div 
                 className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
-                Does the child choose the specialization, or does the academy decide?
-              </div>
-              <div className="faq-content">The child is placed in a suitable specialization based on our expertise. Children also go through multiple specializations to discover their strengths.</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(123, 104, 238, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'mediumpurple'}}>▶</div>
-                Are there any required tools?
-              </div>
-              <div className="faq-content">Tools are only required for robotics courses, including electronics, batteries, motors, and more.</div>
-            </div>
-
-            <div className="faq" data-color="rgba(255, 140, 0, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'darkorange'}}>▶</div>
-                Does the child need a laptop?
-              </div>
-              <div className="faq-content">No, a modern smartphone is sufficient and does not affect learning. We use programs that work on both laptops and phones. However, an advanced level may require a laptop.</div>
-            </div>
-          </div>
-        </section>
-        
-        {/* Booking Form */}
-        <div className={`form-container ${showForm ? 'active' : ''}`} id="form-container">
-          <div className="form-header">
-            <h2 className="from-head">Booking Form</h2>
-          </div>
-
-          <form id="userForm" onSubmit={handleFormSubmit}>
-            {/* Phone with Country Code */}
-            <label htmlFor="phone">Phone Number</label>
-            <input type="tel" id="phone" name="phone" placeholder="Phone number with country key" required />
-
-            {/* Name */}
-            <label htmlFor="name">Full Name</label>
-            <input type="text" id="name" name="name" placeholder="Your name" required />
-
-            {/* Age */}
-            <label htmlFor="age">Age</label>
-            <select id="age" name="age" required>
-              <option value="7-9">7-9</option>
-              <option value="10-12">10-12</option>
-              <option value="13-15">13-15</option>
-              <option value="16-18">16-18</option>
-              <option value="19-40">19-40</option>
-            </select>
-
-            {/* branch Selection */}
-            <label htmlFor="branch">Choose Suitable branch</label>
-            <select id="branch" name="branch" required>
-              <option value="El minia">El minia</option>
-              <option value="New EL minia">New minia</option>
-              <option value="Abu Qurqas">Abu Qurqas</option>
-              <option value="Mallawi">Mallawi</option>
-              <option value="Maghagha">Maghagha</option>
-              <option value="Bani Mazar">Bani Mazar</option>
-              <option value="Samalut">Samalut</option>
-              <option value="Online">Online</option>
-            </select>
-
-            {/* Continuing Course */}
-            <label htmlFor="Complete">Did you already start any course with us before and need to complete the course?</label>
-            <div className="yes-no-buttons">
-              <button type="button" onClick={() => toggleCourseInput(true)}>Yes</button>
-              <button type="button" onClick={() => toggleCourseInput(false)}>No</button>
-            </div>
-
-            {/* Extra Course Input */}
-            <div className="extra-course-input" id="extra-course-input">
-              <label htmlFor="course">Choose Course to Complete</label>
-              <select id="course" name="course">
-                <option value="Start from begining">Start from begining</option>
-                <option value="Pictoblox Basics">Pictoblox Basics</option>
-                <option value="Pictoblox Advanced">Pictoblox Advanced</option>  
-                <option value="Pyhton Basics ">Pyhton Basics </option>
-                <option value="AI with Python ">AI with Python</option>
-                <option value="Machine Learning">Machine Learning</option>
-                <option value="Arduino Level 1">Arduino Level 1</option>
-                <option value="Arduino level 2">Arduino level 2</option>
-                <option value="Arduino Projects">Arduino Projects</option>
-                <option value="Web HTML">Web HTML</option>
-                <option value="Web CSS">Web CSS</option>
-                <option value="Web JavaScript">Web JavaScript</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <div className="course-Price" id="course-Price">
-              <label htmlFor="course-Pric-sel">Choose Price Plan</label>
-              <select id="course-Pric-sel" name="course-Pric-sel">
-                <option value="Private 7500">Private 7500 EGP for Five Months 25% discount</option>
-                <option value="Private 3400">Private 3400 EGP for Two Months 15% discount</option>
-                <option value="Private 2000">Private 2000 EGP for One Month  0% discount </option>
-                <option value="General 2250">General 2250 EGP for Five Months  25% discount </option>
-                <option value="General 1530">General 1530 EGP for Three Months  15% discount </option>
-                <option value="General 600">General 600 EGP for One Month  0% discount </option>
-              </select>
-            </div>
-
-            {/* Submit Button */}
-            <div className="submit-cancel">
-              <button type="submit">Submit</button>
-              <button type="button" className="close-btn" onClick={handleCloseForm}>Cancel</button>
-            </div>
-          </form>
-        </div>
-
-        {/* Floating WhatsApp Icon */}
-        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
-        </a>
-      </main>
-      
-      {/* Updated Footer */}
-      <footer id="contact" className="bg-gray-800 text-white py-8 px-4">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <a href="https://www.facebook.com/UPSJuniors/" className="text-blue-400 hover:text-blue-300 text-lg font-bold">
-              UPS Junior Facebook
-            </a>
-            <p className="mt-2 text-gray-300">
-              Connect with us on <a href="http://wa.me/+201204262410" className="text-green-400 hover:text-green-300" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-400">© 2025 UPS Junior. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-};
-
-export default Index;
+                onClick={(e) => toggleFAQ(e
