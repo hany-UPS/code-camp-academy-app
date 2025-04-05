@@ -31,7 +31,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, progress, activeSession
   // Handle different property naming conventions and potential undefined values
   const thumbnail = course.thumbnail || course.thumbnail_url || "/placeholder.svg";
   const createdDate = course.createdAt || course.created_at || new Date().toISOString();
-  const sessionsCount = course.sessions?.length || 0;
+  const sessionsCount = (course.sessions || []).length;
   const activeSessionsCount = activeSessions !== undefined ? activeSessions : sessionsCount;
   
   // Format date
