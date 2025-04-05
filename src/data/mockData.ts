@@ -15,6 +15,7 @@ export interface Session {
   description: string;
   videoUrl: string; // YouTube URL
   order: number;
+  is_active: boolean;
 }
 
 export interface Student {
@@ -42,6 +43,7 @@ export const mockCourses: Course[] = [
         description: "Getting started with the Scratch interface",
         videoUrl: "https://www.youtube.com/embed/K0T7zuxEIgw",
         order: 1,
+        is_active: true
       },
       {
         id: "1-2",
@@ -49,6 +51,7 @@ export const mockCourses: Course[] = [
         description: "Make a simple game with Scratch",
         videoUrl: "https://www.youtube.com/embed/1E8opsBP_98",
         order: 2,
+        is_active: true
       },
       {
         id: "1-3",
@@ -56,6 +59,7 @@ export const mockCourses: Course[] = [
         description: "Learn about variables and conditional statements",
         videoUrl: "https://www.youtube.com/embed/jQgwEsJISy0",
         order: 3,
+        is_active: true
       }
     ],
     createdAt: "2023-01-15T12:00:00Z",
@@ -73,6 +77,7 @@ export const mockCourses: Course[] = [
         description: "Learn about variables, types, and printing",
         videoUrl: "https://www.youtube.com/embed/x7X9w_GIm1s",
         order: 1,
+        is_active: true
       },
       {
         id: "2-2",
@@ -80,6 +85,7 @@ export const mockCourses: Course[] = [
         description: "Control the flow of your program with conditions",
         videoUrl: "https://www.youtube.com/embed/AWek49wXGzI",
         order: 2,
+        is_active: true
       }
     ],
     createdAt: "2023-03-01T09:15:00Z",
@@ -97,6 +103,7 @@ export const mockCourses: Course[] = [
         description: "Learn the Unity interface and basic concepts",
         videoUrl: "https://www.youtube.com/embed/E6A4WvsDeLE",
         order: 1,
+        is_active: true
       },
       {
         id: "3-2",
@@ -104,6 +111,7 @@ export const mockCourses: Course[] = [
         description: "Design and animate a game character",
         videoUrl: "https://www.youtube.com/embed/n0GQL5JgJcY",
         order: 2,
+        is_active: true
       },
       {
         id: "3-3",
@@ -111,6 +119,7 @@ export const mockCourses: Course[] = [
         description: "Make your game interactive with physics",
         videoUrl: "https://www.youtube.com/embed/gAB64vfbrhI",
         order: 3,
+        is_active: true
       }
     ],
     createdAt: "2023-04-10T11:20:00Z",

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -27,6 +26,18 @@ interface Course {
     is_active: boolean;
   }>;
   activeSessions: number;
+}
+
+interface SessionData {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  video_url: string;
+  sequence_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface Student {
@@ -74,7 +85,6 @@ const AdminDashboard: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch courses with their sessions
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("*");
@@ -88,7 +98,6 @@ const AdminDashboard: React.FC = () => {
         });
       }
       
-      // Fetch all sessions to count active ones for each course
       const { data: sessionsData, error: sessionsError } = await supabase
         .from("sessions")
         .select("*");
@@ -97,14 +106,17 @@ const AdminDashboard: React.FC = () => {
         console.error("Error fetching sessions:", sessionsError);
       }
       
-      // Process courses with session counts
       const processedCourses = coursesData?.map(course => {
         const courseSessions = sessionsData?.filter(s => s.course_id === course.id) || [];
-        const activeSessionsCount = courseSessions.filter(s => s.is_active).length;
+        const sessionsWithActiveStatus = courseSessions.map(session => ({
+          id: session.id,
+          is_active: session.is_active !== undefined ? session.is_active : true
+        }));
+        const activeSessionsCount = courseSessions.filter(s => s.is_active !== false).length;
         
         return {
           ...course,
-          sessions: courseSessions,
+          sessions: sessionsWithActiveStatus,
           activeSessions: activeSessionsCount
         };
       }) || [];

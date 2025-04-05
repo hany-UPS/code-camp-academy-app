@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -101,14 +100,20 @@ const CourseView: React.FC = () => {
           });
           setVisibleSessions([]);
         } else {
+          // Make sure each session has the is_active property
+          const processedSessions = sessionsData.map(session => ({
+            ...session,
+            is_active: session.is_active !== undefined ? session.is_active : true
+          }));
+          
           const completeData: Course = {
             ...courseData,
-            sessions: sessionsData
+            sessions: processedSessions
           };
           
           setCourse(completeData);
-          setVisibleSessions(sessionsData);
-          setActiveSession(sessionsData[0]);
+          setVisibleSessions(processedSessions);
+          setActiveSession(processedSessions[0]);
         }
         
         // If student, fetch completed sessions

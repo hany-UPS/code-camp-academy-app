@@ -52,7 +52,13 @@ const SessionsManager: React.FC<SessionsManagerProps> = ({ course, onClose }) =>
         throw error;
       }
       
-      setSessions(data || []);
+      // Make sure we handle the is_active property
+      const sessionsWithActiveStatus = data?.map(session => ({
+        ...session,
+        is_active: session.is_active !== undefined ? session.is_active : true
+      })) || [];
+      
+      setSessions(sessionsWithActiveStatus);
     } catch (error: any) {
       console.error("Error fetching sessions:", error);
       toast({

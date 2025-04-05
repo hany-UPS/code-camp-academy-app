@@ -25,6 +25,9 @@ interface Session {
   title: string;
   course_id: string;
   is_active: boolean;
+  video_url: string;
+  sequence_order: number;
+  description: string | null;
 }
 
 const StudentDashboard: React.FC = () => {
@@ -118,7 +121,11 @@ const StudentDashboard: React.FC = () => {
           if (!sessionsByCourse[session.course_id]) {
             sessionsByCourse[session.course_id] = [];
           }
-          sessionsByCourse[session.course_id].push(session);
+          // Make sure each session has the is_active property
+          sessionsByCourse[session.course_id].push({
+            ...session,
+            is_active: session.is_active !== undefined ? session.is_active : true
+          });
         });
         
         // Create completed sessions set for easy lookup
