@@ -14,8 +14,9 @@ const Index: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const studentsSliderRef = useRef<HTMLDivElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>("select");
-  const [showForm, setShowForm] = useState<boolean>(false);
   const [continueCourse, setContinueCourse] = useState<boolean>(false);
+  const [selectedPricePlan, setSelectedPricePlan] = useState<string>("");
+  const bookingFormRef = useRef<HTMLDivElement>(null);
   
   const locationData: Record<string, string> = {
     "El minia": "123 Main Street, El Minia, Egypt - Contact: +20 123 456 789",
@@ -105,17 +106,20 @@ const Index: React.FC = () => {
       }
     }, 3000);
 
+    
     renderCourses(activeAge);
 
     return () => clearInterval(interval);
   }, []);
 
   const handleAgeChange = (age: string) => {
+    
     setActiveAge(age);
     renderCourses(age);
   };
 
   const togglePlans = (planType: string) => {
+    
     setSelectedPlan(planType);
     
     const generalCards = document.querySelector('.general');
@@ -131,10 +135,12 @@ const Index: React.FC = () => {
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    
     setSelectedLocation(e.target.value);
   };
 
   const toggleFAQ = (header: HTMLElement) => {
+    
     const faq = header.parentElement;
     if (faq) {
       faq.classList.toggle('active');
@@ -146,6 +152,7 @@ const Index: React.FC = () => {
   };
 
   const renderCourses = (ageGroup: string) => {
+    
     const courseListContainer = document.getElementById('course-list');
     if (!courseListContainer || !coursesData[ageGroup as keyof typeof coursesData]) return;
     
@@ -171,14 +178,22 @@ const Index: React.FC = () => {
     courseListContainer.innerHTML = coursesHTML;
   };
 
-  const handleOpenForm = () => {
-    setShowForm(true);
-    document.getElementById('overlay')?.classList.add('active');
-  };
-
-  const handleCloseForm = () => {
-    setShowForm(false);
-    document.getElementById('overlay')?.classList.remove('active');
+  const scrollToBookingForm = (planName: string) => {
+    setSelectedPricePlan(planName);
+    
+    if (bookingFormRef.current) {
+      bookingFormRef.current.scrollIntoView({ behavior: 'smooth' });
+      
+      
+      const coursePriceSel = document.getElementById('course-Pric-sel') as HTMLSelectElement;
+      if (coursePriceSel) {
+        const options = Array.from(coursePriceSel.options);
+        const option = options.find(opt => opt.value.includes(planName));
+        if (option) {
+          coursePriceSel.value = option.value;
+        }
+      }
+    }
   };
 
   const toggleCourseInput = (value: boolean) => {
@@ -191,6 +206,7 @@ const Index: React.FC = () => {
         extraCourseInput.classList.remove('active');
       }
     }
+    
     
     const yesNoButtons = document.querySelectorAll('.yes-no-buttons button');
     yesNoButtons.forEach((btn, index) => {
@@ -216,6 +232,7 @@ const Index: React.FC = () => {
     const previousCourse = previousCourseButton && previousCourseButton.textContent === 'Yes';
     const course = previousCourse ? formData.get('course') as string : null;
 
+    
     if (!name || !phone || !age || !branch || !plan) {
       toast.error('Please fill out all required fields.');
       return;
@@ -237,7 +254,10 @@ const Index: React.FC = () => {
       if (error) throw error;
 
       toast.success('Booking submitted successfully!');
-      handleCloseForm();
+      
+      (e.target as HTMLFormElement).reset();
+      setSelectedPricePlan("");
+      setContinueCourse(false);
     } catch (error) {
       console.error('Error submitting booking:', error);
       toast.error('There was an error submitting your booking. Please try again.');
@@ -249,6 +269,7 @@ const Index: React.FC = () => {
       <Header />
       
       <main className="flex-1">
+        
         <nav className="custom-nav bg-white shadow-md py-4">
           <div className="container mx-auto px-4 flex justify-between items-center">
             <button className="hamburger" id="hamburger">☰</button>
@@ -269,6 +290,7 @@ const Index: React.FC = () => {
           </div>
         </nav>
 
+        
         <section className="hero" id="home">
           <div className="hero-container mx-auto px-5 py-8">
             <div className="hero-content">
@@ -284,6 +306,7 @@ const Index: React.FC = () => {
           </div>
         </section>
 
+        
         <section className="content" id="Ages">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">Courses by Ages</h2>
           
@@ -301,10 +324,11 @@ const Index: React.FC = () => {
           </div>
 
           <div className="courses" id="course-list">
-            {/* Courses are dynamically inserted here by renderCourses function */}
+            
           </div>
         </section>
 
+        
         <section className="content" id="courses">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Courses</h2>
           
@@ -353,6 +377,7 @@ const Index: React.FC = () => {
           </div>
         </section>
 
+        
         <section className="content" id="price">
           <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">Pricing Plans</h2>
           <p className="text-center text-gray-700 mb-6">
@@ -360,8 +385,6 @@ const Index: React.FC = () => {
           </p>
 
           <div className="container mx-auto px-4">
-            <div className="overlay" id="overlay"></div>
-
             <div className="toggle-buttons mb-6">
               <button 
                 className={`general-btn ${selectedPlan === 'general' ? 'active' : ''}`} 
@@ -377,7 +400,9 @@ const Index: React.FC = () => {
               </button>
             </div>
 
+            
             <div className="pricing-cards" id="pricing-cards">
+              
               <div className={`active-cards private ${selectedPlan === 'private' ? 'flex' : 'hidden'}`}>
                 <div className="card private-card">
                   <div className="card-title basic">Basic</div>
@@ -389,7 +414,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 2000")}>Book Now</button>
                 </div>
                 <div className="card private-card">
                   <div className="card-title advanced rounded-t-lg">Advanced</div>
@@ -401,7 +426,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;2 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;600 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 3400")}>Book Now</button>
                 </div>
                 <div className="card private-card shadow-card">
                   <div className="card-title special rounded-t-lg">Special</div>
@@ -413,10 +438,11 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;2500 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 7500")}>Book Now</button>
                 </div>
               </div>
 
+              
               <div className={`active-cards general ${selectedPlan === 'general' ? 'flex' : 'hidden'}`}>
                 <div className="card general-card">
                   <div className="card-title basic rounded-t-lg">Basic</div>
@@ -428,7 +454,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 600")}>Book Now</button>
                 </div>
                 <div className="card general-card">
                   <div className="card-title advanced rounded-t-lg">Advanced</div>
@@ -440,7 +466,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;3 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;270 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 1530")}>Book Now</button>
                 </div>
                 <div className="card general-card shadow-card">
                   <div className="card-title special rounded-t-lg">Special</div>
@@ -452,13 +478,14 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;750 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 2250")}>Book Now</button>
                 </div>
               </div>
             </div>
           </div>
         </section>
 
+        
         <section className="content">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">Student Projects</h1>
           <p className="text-center text-gray-600 mb-8">
@@ -513,6 +540,7 @@ const Index: React.FC = () => {
           </div>
         </section>
 
+        
         <section className="content flex my-10 flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">Branches</h1>
 
@@ -547,6 +575,7 @@ const Index: React.FC = () => {
           </div>
         </section>
 
+        
         <section className="content" id="images">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Students</h2>
           
@@ -574,154 +603,54 @@ const Index: React.FC = () => {
             </div>
           </div>
         </section>
-
-        <section className="content" id="faq">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">FAQs</h2>
-          <div className="faq-container max-w-4xl mx-auto">
-            <div className="faq" data-color="rgba(255, 165, 0, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'orange'}}>▶</div>
-                What age group are your courses designed for?
+        
+        <section className="content booking-section" id="booking" ref={bookingFormRef}>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">Book Your Course</h2>
+          
+          <div className="booking-form-container max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-6">
+            {selectedPricePlan && (
+              <div className="selected-plan-banner mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
+                <p className="text-blue-800 font-medium">
+                  You're booking the <span className="font-bold">{selectedPricePlan}</span> plan
+                </p>
               </div>
-              <div className="faq-content">Our courses are tailored for children aged 7-17 years...</div>
-            </div>
+            )}
             
-            <div className="faq" data-color="rgba(255, 99, 71, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'red'}}>▶</div>
-                When does the course start?
-              </div>
-              <div className="faq-content">After registration, we will contact you via WhatsApp once the group is formed.</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(60, 179, 113, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'darkgreen'}}>▶</div>
-                How are the course schedules determined?
-              </div>
-              <div className="faq-content">Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(218, 165, 32, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'goldenrod'}}>▶</div>
-                Is there a sibling discount?
-              </div>
-              <div className="faq-content">Yes, there is a 10% discount.</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
-                Do you offer online courses?
-              </div>
-              <div className="faq-content">Yes, we have an online branch where students can learn remotely!</div>
-            </div>
-          </div>
-        </section>
+            <form id="userForm" onSubmit={handleFormSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder="Phone number with country key" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required 
+                  />
+                </div>
 
-        {showForm && (
-          <div className="form-container" id="form-container">
-            <div className="form-header">
-              <h2 className="from-head">Booking Form</h2>
-            </div>
-
-            <form id="userForm" onSubmit={handleFormSubmit}>
-              <label htmlFor="phone">Phone Number</label>
-              <input type="tel" id="phone" name="phone" placeholder="Phone number with country key" required />
-
-              <label htmlFor="name">Full Name</label>
-              <input type="text" id="name" name="name" placeholder="Your name" required />
-
-              <label htmlFor="age">Age</label>
-              <select id="age" name="age" required>
-                <option value="7-9">7-9</option>
-                <option value="10-12">10-12</option>
-                <option value="13-15">13-15</option>
-                <option value="16-18">16-18</option>
-                <option value="19-40">19-40</option>
-              </select>
-
-              <label htmlFor="branch">Choose Suitable branch</label>
-              <select id="branch" name="branch" required>
-                <option value="El minia">El minia</option>
-                <option value="New EL minia">New minia</option>
-                <option value="Abu Qurqas">Abu Qurqas</option>
-                <option value="Mallawi">Mallawi</option>
-                <option value="Maghagha">Maghagha</option>
-                <option value="Bani Mazar">Bani Mazar</option>
-                <option value="Samalut">Samalut</option>
-                <option value="Online">Online</option>
-              </select>
-
-              <label htmlFor="Complete">Did you already start any course with us before and need to complete the courses?</label>
-              <div className="yes-no-buttons">
-                <button type="button" onClick={() => toggleCourseInput(true)} className={continueCourse ? 'active' : ''}>Yes</button>
-                <button type="button" onClick={() => toggleCourseInput(false)} className={!continueCourse ? 'active' : ''}>No</button>
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    placeholder="Your name" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required 
+                  />
+                </div>
               </div>
 
-              <div className={`extra-course-input ${continueCourse ? 'active' : ''}`} id="extra-course-input">
-                <label htmlFor="course">Choose Course to Complete</label>
-                <select id="course" name="course">
-                  <option value="Start from begining">Start from beginning</option>
-                  <option value="Pictoblox Basics">Pictoblox Basics</option>
-                  <option value="Pictoblox Advanced">Pictoblox Advanced</option>  
-                  <option value="Pyhton Basics ">Python Basics</option>
-                  <option value="AI with Python ">AI with Python</option>
-                  <option value="Machine Learning">Machine Learning</option>
-                  <option value="Arduino Level 1">Arduino Level 1</option>
-                  <option value="Arduino level 2">Arduino level 2</option>
-                  <option value="Arduino Projects">Arduino Projects</option>
-                  <option value="Web HTML">Web HTML</option>
-                  <option value="Web CSS">Web CSS</option>
-                  <option value="Web JavaScript">Web JavaScript</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-
-              <div className="course-Price" id="course-Price">
-                <label htmlFor="course-Pric-sel">Choose Price plan</label>
-                <select id="course-Pric-sel" name="course-Pric-sel">
-                  <option value="Private 7500">Private 7500 EGB for Five Months 25% discount</option>
-                  <option value="Private 3400">Private 3400 EGB for Two Months 15% discount</option>
-                  <option value="Private 2000">Private 2000 EGB for One Month 0% discount</option>
-                  <option value="General 2250">General 2250 EGB for Five Months 25% discount</option>
-                  <option value="General 1530">General 1530 EGB for Three Months 15% discount</option>
-                  <option value="General 600">General 600 EGB for One Month 0% discount</option>
-                </select>
-              </div>
-
-              <div className="submit-cancel">
-                <button type="submit">Submit</button>
-                <button type="button" className="close-btn" onClick={handleCloseForm}>Cancel</button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
-        </a>
-      </main>
-
-      <Footer />
-    </div>
-  );
-};
-
-export default Index;
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                  <select 
+                    id="age" 
+                    name="age" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="7-9">7-9</option>
+                    <option value
