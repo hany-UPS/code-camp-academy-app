@@ -13,6 +13,9 @@ const Index: React.FC = () => {
   const sliderRef = useRef<HTMLDivElement>(null);
   const studentsSliderRef = useRef<HTMLDivElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>("select");
+  const [showForm, setShowForm] = useState<boolean>(false);
+  const [continueCourse, setContinueCourse] = useState<boolean>(false);
+  
   const locationData: Record<string, string> = {
     "El minia": "123 Main Street, El Minia, Egypt - Contact: +20 123 456 789",
     "new_El minia": "456 New Avenue, New Minia City - Contact: +20 123 456 790",
@@ -24,66 +27,34 @@ const Index: React.FC = () => {
     "online": "Learn from anywhere! All you need is an internet connection and a computer or tablet."
   };
 
-  const coursesData: Record<string, Array<{title: string, description: string, image: string}>> = {
+  const coursesData = {
     "7-9": [
-      {
-        title: "Scratch Basics",
-        description: "Introduction to programming with fun animations and games",
-        image: "https://i.postimg.cc/0yX3mXNZ/ezgif-com-animated-gif-maker-2.gif"
-      },
-      {
-        title: "Digital Art",
-        description: "Create colorful drawings and simple animations",
-        image: "https://i.postimg.cc/G2GSWcxS/ezgif-com-animated-gif-maker-1.gif"
-      }
+      { title: "2D Game Design With Pictoblox", image: "https://i.postimg.cc/63m998Yc/Picto-Blox-Blocks.gif" },
+      { title: "Advancie Game design ", image: "https://i.postimg.cc/hG8zP1dr/FW5-ZUSFJSCG1-VNW.gif" },
+      { title: "Intro to AI", image: "https://i.postimg.cc/Y0TqxvF0/Hand-Gesture-Beetle-in-the-Maze.gif" }
     ],
     "10-12": [
-      {
-        title: "Game Development",
-        description: "Build interactive games with Scratch and PictoBlox",
-        image: "https://i.postimg.cc/WbHG3dvK/apple-ezgif-com-resize.gif"
-      },
-      {
-        title: "Web Design Basics",
-        description: "Create simple websites with HTML and CSS",
-        image: "https://i.postimg.cc/G2GSWcxS/ezgif-com-animated-gif-maker-1.gif"
-      }
+      { title: "Robotics and Electronics Basics", image: "https://i.postimg.cc/25WddWBb/elec.gif" },
+      { title: "Robotics projects with Arduino ", image: "https://i.postimg.cc/yxfBfkSc/robot.gif" },
+      { title: "Advanced Arduino Projects", image: "https://i.postimg.cc/W3F4qmDC/home.webp" }
     ],
     "13-15": [
-      {
-        title: "Python Programming",
-        description: "Introduction to Python with practical applications",
-        image: "https://i.postimg.cc/7Lsmj5zV/ezgif-com-animated-gif-maker-5.gif"
-      },
-      {
-        title: "Advanced Game Development",
-        description: "Create complex games with logic and physics",
-        image: "https://i.postimg.cc/fysgZ6HW/ezgif-com-animated-gif-maker-4.gif"
-      }
+      { title: "Web Development Basics", image: "https://i.postimg.cc/FKj4MPL9/web-0.gif" },
+      { title: "Web Development advanced", image: "https://i.postimg.cc/G25sZhYw/web-3.gif" },
+      { title: "Web Development Projects", image: "https://i.postimg.cc/m2F6pPM4/web-22.gif" },
+      { title: "Web Development with AI", image: "https://i.postimg.cc/P5ybSH6h/web1.gif" }
     ],
     "16-18": [
-      {
-        title: "Web Development",
-        description: "Full-stack development with React and Node.js",
-        image: "https://i.postimg.cc/mkJ61hnY/ezgif-com-animated-gif-maker-8.gif"
-      },
-      {
-        title: "App Development",
-        description: "Build mobile apps for Android and iOS",
-        image: "https://i.postimg.cc/SsZPqg7t/ezgif-com-resize-1.gif"
-      }
+      { title: "Python Basics", image: "https://i.postimg.cc/NFn77kbX/pyhton-0.gif" },
+      { title: "AI with Python", image: "https://i.postimg.cc/sf78fB62/ai-python.gif" },
+      { title: "Data Analysis", image: "https://i.postimg.cc/6qthpQq7/data-0.gif" },
+      { title: "Machine Learning", image: "https://i.postimg.cc/wTJ0cS8T/machine.gif" }
     ],
     "19-40": [
-      {
-        title: "Advanced Programming",
-        description: "Professional software development with Python, Java, and more",
-        image: "https://i.postimg.cc/pdH4BhLk/ezgif-com-resize-2.gif"
-      },
-      {
-        title: "Data Science",
-        description: "Analysis and visualization with Python and R",
-        image: "https://i.postimg.cc/yxkbN0L6/ezgif-com-resize-3.gif"
-      }
+      { title: "AI Intro and Tools", image: "https://i.postimg.cc/KzyP0Yn9/ai-tool.gif" },
+      { title: "web Development with AI", image: "https://i.postimg.cc/SRSWpt1C/ai-code.gif" },
+      { title: "Graphic Design  with AI", image: "https://i.postimg.cc/0yb0QFkC/ai-gaphics.gif" },
+      { title: "Freelancing and Earning Money ", image: "https://i.postimg.cc/LXRPzbpw/freelance.gif" }
     ]
   };
 
@@ -136,15 +107,31 @@ const Index: React.FC = () => {
       }
     }, 3000);
 
+    // Render courses for the default active age
+    renderCourses(activeAge);
+
     return () => clearInterval(interval);
   }, []);
 
   const handleAgeChange = (age: string) => {
     setActiveAge(age);
+    renderCourses(age);
   };
 
   const togglePlans = (planType: string) => {
     setSelectedPlan(planType);
+    
+    // Show the appropriate pricing cards
+    const generalCards = document.querySelector('.general');
+    const privateCards = document.querySelector('.private');
+    
+    if (planType === 'general') {
+      if (generalCards) generalCards.classList.remove('hidden');
+      if (privateCards) privateCards.classList.add('hidden');
+    } else {
+      if (generalCards) generalCards.classList.add('hidden');
+      if (privateCards) privateCards.classList.remove('hidden');
+    }
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -160,6 +147,73 @@ const Index: React.FC = () => {
         icon.textContent = faq.classList.contains('active') ? '▼' : '▶';
       }
     }
+  };
+
+  const renderCourses = (ageGroup: string) => {
+    const courseListContainer = document.getElementById('course-list');
+    if (!courseListContainer || !coursesData[ageGroup as keyof typeof coursesData]) return;
+    
+    // Create HTML for the selected age group's courses
+    const coursesHTML = `
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        ${coursesData[ageGroup as keyof typeof coursesData].map(course => `
+          <div class="course-card bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="aspect-video w-full overflow-hidden">
+              <img 
+                src="${course.image}" 
+                alt="${course.title}" 
+                class="w-full h-full object-cover"
+              />
+            </div>
+            <div class="p-4">
+              <h3 class="text-xl font-semibold">${course.title}</h3>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    courseListContainer.innerHTML = coursesHTML;
+  };
+
+  const handleOpenForm = () => {
+    setShowForm(true);
+    document.getElementById('overlay')?.classList.add('active');
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    document.getElementById('overlay')?.classList.remove('active');
+  };
+
+  const toggleCourseInput = (value: boolean) => {
+    setContinueCourse(value);
+    const extraCourseInput = document.getElementById('extra-course-input');
+    if (extraCourseInput) {
+      if (value) {
+        extraCourseInput.classList.add('active');
+      } else {
+        extraCourseInput.classList.remove('active');
+      }
+    }
+    
+    // Toggle active class on buttons
+    const yesNoButtons = document.querySelectorAll('.yes-no-buttons button');
+    yesNoButtons.forEach((btn, index) => {
+      if ((index === 0 && value) || (index === 1 && !value)) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Here you would normally process the form data, perhaps send it to an API
+    console.log('Form submitted');
+    handleCloseForm();
+    // You could add a toast notification or other feedback here
   };
 
   return (
@@ -223,23 +277,7 @@ const Index: React.FC = () => {
           </div>
 
           <div className="courses" id="course-list">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {coursesData[activeAge].map((course, index) => (
-                <div key={index} className="course-card bg-white rounded-lg shadow-lg overflow-hidden">
-                  <div className="aspect-video w-full overflow-hidden">
-                    <img 
-                      src={course.image} 
-                      alt={course.title} 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-xl font-semibold">{course.title}</h3>
-                    <p className="text-gray-600 mt-2">{course.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* Courses are dynamically inserted here by renderCourses function */}
           </div>
         </section>
 
@@ -336,7 +374,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
                 <div className="card private-card">
                   <div className="card-title advanced rounded-t-lg">Advanced</div>
@@ -348,7 +386,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;2 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;600 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
                 <div className="card private-card shadow-card">
                   <div className="card-title special rounded-t-lg">Special</div>
@@ -360,7 +398,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;2500 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
               </div>
 
@@ -376,7 +414,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
                 <div className="card general-card">
                   <div className="card-title advanced rounded-t-lg">Advanced</div>
@@ -388,7 +426,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;3 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;270 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
                 <div className="card general-card shadow-card">
                   <div className="card-title special rounded-t-lg">Special</div>
@@ -400,7 +438,7 @@ const Index: React.FC = () => {
                     <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
                     <li><span className="check">✓</span>&nbsp;&nbsp;750 Discount applied</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => navigate("/login")}>Book Now</button>
+                  <button className="book-now-btn" onClick={handleOpenForm}>Book Now</button>
                 </div>
               </div>
             </div>
@@ -534,7 +572,10 @@ const Index: React.FC = () => {
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">FAQs</h2>
           <div className="faq-container max-w-4xl mx-auto">
             <div className="faq" data-color="rgba(255, 165, 0, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'orange'}}>▶</div>
                 What age group are your courses designed for?
               </div>
@@ -542,7 +583,10 @@ const Index: React.FC = () => {
             </div>
             
             <div className="faq" data-color="rgba(255, 99, 71, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'red'}}>▶</div>
                 When does the course start?
               </div>
@@ -550,7 +594,10 @@ const Index: React.FC = () => {
             </div>
             
             <div className="faq" data-color="rgba(60, 179, 113, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'darkgreen'}}>▶</div>
                 How are the course schedules determined?
               </div>
@@ -558,7 +605,10 @@ const Index: React.FC = () => {
             </div>
             
             <div className="faq" data-color="rgba(218, 165, 32, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'goldenrod'}}>▶</div>
                 Is there a sibling discount?
               </div>
@@ -566,7 +616,10 @@ const Index: React.FC = () => {
             </div>
             
             <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
                 Does the child choose the specialization, or does the academy decide?
               </div>
@@ -574,14 +627,113 @@ const Index: React.FC = () => {
             </div>
             
             <div className="faq" data-color="rgba(123, 104, 238, 0.7)">
-              <div className="faq-header" onClick={(e) => toggleFAQ(e.currentTarget)}>
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
                 <div className="faq-icon" style={{background: 'mediumpurple'}}>▶</div>
                 Are there any required tools?
               </div>
               <div className="faq-content">Tools are only required for robotics courses, including electronics, batteries, motors, and more.</div>
             </div>
+
+            <div className="faq" data-color="rgba(255, 140, 0, 0.7)">
+              <div 
+                className="faq-header" 
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'darkorange'}}>▶</div>
+                Does the child need a laptop?
+              </div>
+              <div className="faq-content">No, a modern smartphone is sufficient and does not affect learning. We use programs that work on both laptops and phones. However, an advanced level may require a laptop.</div>
+            </div>
           </div>
         </section>
+        
+        {/* Booking Form */}
+        <div className={`form-container ${showForm ? 'active' : ''}`} id="form-container">
+          <div className="form-header">
+            <h2 className="from-head">Booking Form</h2>
+          </div>
+
+          <form id="userForm" onSubmit={handleFormSubmit}>
+            {/* Phone with Country Code */}
+            <label htmlFor="phone">Phone Number</label>
+            <input type="tel" id="phone" name="phone" placeholder="Phone number with country key" required />
+
+            {/* Name */}
+            <label htmlFor="name">Full Name</label>
+            <input type="text" id="name" name="name" placeholder="Your name" required />
+
+            {/* Age */}
+            <label htmlFor="age">Age</label>
+            <select id="age" name="age" required>
+              <option value="7-9">7-9</option>
+              <option value="10-12">10-12</option>
+              <option value="13-15">13-15</option>
+              <option value="16-18">16-18</option>
+              <option value="19-40">19-40</option>
+            </select>
+
+            {/* branch Selection */}
+            <label htmlFor="branch">Choose Suitable branch</label>
+            <select id="branch" name="branch" required>
+              <option value="El minia">El minia</option>
+              <option value="New EL minia">New minia</option>
+              <option value="Abu Qurqas">Abu Qurqas</option>
+              <option value="Mallawi">Mallawi</option>
+              <option value="Maghagha">Maghagha</option>
+              <option value="Bani Mazar">Bani Mazar</option>
+              <option value="Samalut">Samalut</option>
+              <option value="Online">Online</option>
+            </select>
+
+            {/* Continuing Course */}
+            <label htmlFor="Complete">Did you already start any course with us before and need to complete the course?</label>
+            <div className="yes-no-buttons">
+              <button type="button" onClick={() => toggleCourseInput(true)}>Yes</button>
+              <button type="button" onClick={() => toggleCourseInput(false)}>No</button>
+            </div>
+
+            {/* Extra Course Input */}
+            <div className="extra-course-input" id="extra-course-input">
+              <label htmlFor="course">Choose Course to Complete</label>
+              <select id="course" name="course">
+                <option value="Start from begining">Start from begining</option>
+                <option value="Pictoblox Basics">Pictoblox Basics</option>
+                <option value="Pictoblox Advanced">Pictoblox Advanced</option>  
+                <option value="Pyhton Basics ">Pyhton Basics </option>
+                <option value="AI with Python ">AI with Python</option>
+                <option value="Machine Learning">Machine Learning</option>
+                <option value="Arduino Level 1">Arduino Level 1</option>
+                <option value="Arduino level 2">Arduino level 2</option>
+                <option value="Arduino Projects">Arduino Projects</option>
+                <option value="Web HTML">Web HTML</option>
+                <option value="Web CSS">Web CSS</option>
+                <option value="Web JavaScript">Web JavaScript</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="course-Price" id="course-Price">
+              <label htmlFor="course-Pric-sel">Choose Price Plan</label>
+              <select id="course-Pric-sel" name="course-Pric-sel">
+                <option value="Private 7500">Private 7500 EGP for Five Months 25% discount</option>
+                <option value="Private 3400">Private 3400 EGP for Two Months 15% discount</option>
+                <option value="Private 2000">Private 2000 EGP for One Month  0% discount </option>
+                <option value="General 2250">General 2250 EGP for Five Months  25% discount </option>
+                <option value="General 1530">General 1530 EGP for Three Months  15% discount </option>
+                <option value="General 600">General 600 EGP for One Month  0% discount </option>
+              </select>
+            </div>
+
+            {/* Submit Button */}
+            <div className="submit-cancel">
+              <button type="submit">Submit</button>
+              <button type="button" className="close-btn" onClick={handleCloseForm}>Cancel</button>
+            </div>
+          </form>
+        </div>
 
         {/* Floating WhatsApp Icon */}
         <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
@@ -589,7 +741,22 @@ const Index: React.FC = () => {
         </a>
       </main>
       
-      <Footer />
+      {/* Updated Footer */}
+      <footer id="contact" className="bg-gray-800 text-white py-8 px-4">
+        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
+          <div className="mb-4 md:mb-0">
+            <a href="https://www.facebook.com/UPSJuniors/" className="text-blue-400 hover:text-blue-300 text-lg font-bold">
+              UPS Junior Facebook
+            </a>
+            <p className="mt-2 text-gray-300">
+              Connect with us on <a href="http://wa.me/+201204262410" className="text-green-400 hover:text-green-300" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            </p>
+          </div>
+          <div>
+            <p className="text-gray-400">© 2025 UPS Junior. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
