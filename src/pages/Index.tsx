@@ -18,6 +18,109 @@ const Index: React.FC = () => {
   const [continueCourse, setContinueCourse] = useState<boolean>(false);
   const [selectedPricePlan, setSelectedPricePlan] = useState<string>("");
   const bookingFormRef = useRef<HTMLDivElement>(null);
+  const [language, setLanguage] = useState<"en" | "ar">("en");
+  
+  // Arabic translations
+  const translations = {
+    en: {
+      home: "Home",
+      ages: "Ages",
+      price: "Price",
+      courses: "Courses",
+      faq: "FAQ",
+      contact: "Contact",
+      heroTitle: "Young Coders Today\nFuture Tech Leaders",
+      heroDesc: "Enroll your kids in interactive programming sessions and empower their future with expert instructors.",
+      startLearning: "Start Learning Today",
+      coursesByAge: "Courses by Ages",
+      pricingPlans: "Pricing Plans",
+      pricingDesc: "Choose the right plan. We offer private plans for a single child and general plans for a group of 8-10 children. Choose what suits your needs.",
+      general: "General",
+      private: "Private",
+      basic: "Basic",
+      advanced: "Advanced",
+      special: "Special",
+      perMonth: "/ month",
+      off: "off",
+      oldPrice: "OLD PRICE",
+      pricePerMonth: "Price per month",
+      noDiscount: "No discount",
+      monthsPlan: "months plan",
+      discountApplied: "Discount applied",
+      bookNow: "Book Now",
+      studentProjects: "Student Projects",
+      studentsDesc: "Our students' projects have led to major success stories, including scholarships and global competitions.",
+      branches: "Branches",
+      chooseBranch: "Choose the branch:",
+      selectBranch: "Select a branch to see the details.",
+      students: "Students",
+      bookYourCourse: "Book Your Course",
+      bookingFor: "You're booking the",
+      plan: "plan",
+      phoneNumber: "Phone Number",
+      fullName: "Full Name",
+      age: "Age",
+      branch: "Branch",
+      selectBranchOption: "Select a branch",
+      previousCourse: "Have you taken a course with us before?",
+      yes: "Yes",
+      no: "No",
+      previousCourseName: "Previous course name",
+      coursePlan: "Course Plan",
+      selectPlan: "Select a plan",
+      submit: "Submit Booking"
+    },
+    ar: {
+      home: "الرئيسية",
+      ages: "الأعمار",
+      price: "الأسعار",
+      courses: "الدورات",
+      faq: "الأسئلة الشائعة",
+      contact: "اتصل بنا",
+      heroTitle: "مبرمجو اليوم الصغار\nقادة التكنولوجيا في المستقبل",
+      heroDesc: "سجل أطفالك في جلسات البرمجة التفاعلية وقوي مستقبلهم مع مدربين خبراء.",
+      startLearning: "ابدأ التعلم اليوم",
+      coursesByAge: "الدورات حسب العمر",
+      pricingPlans: "خطط الأسعار",
+      pricingDesc: "اختر الخطة المناسبة لك. نقدم خطط خاصة لطفل واحد وخطط عامة لمجموعة من 8-10 أطفال. اختر ما يناسب احتياجاتك.",
+      general: "عام",
+      private: "خاص",
+      basic: "أساسي",
+      advanced: "متقدم",
+      special: "خاص",
+      perMonth: "/ شهريًا",
+      off: "خصم",
+      oldPrice: "السعر القديم",
+      pricePerMonth: "السعر شهريًا",
+      noDiscount: "بدون خصم",
+      monthsPlan: "خطة شهور",
+      discountApplied: "تم تطبيق الخصم",
+      bookNow: "احجز الآن",
+      studentProjects: "مشاريع الطلاب",
+      studentsDesc: "أدت مشاريع طلابنا إلى قصص نجاح كبيرة، بما في ذلك المنح الدراسية والمسابقات العالمية.",
+      branches: "الفروع",
+      chooseBranch: "اختر الفرع:",
+      selectBranch: "اختر فرعًا لرؤية التفاصيل.",
+      students: "الطلاب",
+      bookYourCourse: "احجز دورتك",
+      bookingFor: "أنت تحجز خطة",
+      plan: "خطة",
+      phoneNumber: "رقم الهاتف",
+      fullName: "الاسم الكامل",
+      age: "العمر",
+      branch: "الفرع",
+      selectBranchOption: "اختر فرعًا",
+      previousCourse: "هل سبق لك أخذ دورة معنا من قبل؟",
+      yes: "نعم",
+      no: "لا",
+      previousCourseName: "اسم الدورة السابقة",
+      coursePlan: "خطة الدورة",
+      selectPlan: "اختر خطة",
+      submit: "تقديم الحجز"
+    }
+  };
+  
+  const t = translations[language];
   
   const locationData: Record<string, string> = {
     "El minia": "123 Main Street, El Minia, Egypt - Contact: +20 123 456 789",
@@ -112,6 +215,22 @@ const Index: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === "en" ? "ar" : "en");
+    
+    // Toggle active class on language icons
+    const englishIcon = document.getElementById("english-icon");
+    const arabicIcon = document.getElementById("arabic-icon");
+    
+    if (englishIcon && arabicIcon) {
+      englishIcon.classList.toggle("active");
+      arabicIcon.classList.toggle("active");
+    }
+    
+    // Set RTL/LTR direction on body
+    document.body.dir = language === "en" ? "rtl" : "ltr";
+  };
 
   const handleAgeChange = (age: string) => {
     
@@ -230,12 +349,12 @@ const Index: React.FC = () => {
     const plan = formData.get('course-Pric-sel') as string;
 
     const previousCourseButton = document.querySelector('.yes-no-buttons .active');
-    const previousCourse = previousCourseButton && previousCourseButton.textContent === 'Yes';
+    const previousCourse = previousCourseButton && previousCourseButton.textContent === (language === 'en' ? 'Yes' : 'نعم');
     const course = previousCourse ? formData.get('course') as string : null;
 
     
     if (!name || !phone || !age || !branch || !plan) {
-      toast.error('Please fill out all required fields.');
+      toast.error(language === 'en' ? 'Please fill out all required fields.' : 'يرجى ملء جميع الحقول المطلوبة.');
       return;
     }
 
@@ -254,19 +373,19 @@ const Index: React.FC = () => {
 
       if (error) throw error;
 
-      toast.success('Booking submitted successfully!');
+      toast.success(language === 'en' ? 'Booking submitted successfully!' : 'تم تقديم الحجز بنجاح!');
       
       (e.target as HTMLFormElement).reset();
       setSelectedPricePlan("");
       setContinueCourse(false);
     } catch (error) {
       console.error('Error submitting booking:', error);
-      toast.error('There was an error submitting your booking. Please try again.');
+      toast.error(language === 'en' ? 'There was an error submitting your booking. Please try again.' : 'حدث خطأ أثناء تقديم الحجز الخاص بك. يرجى المحاولة مرة أخرى.');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
       <Header />
       
       <main className="flex-1">
@@ -276,17 +395,17 @@ const Index: React.FC = () => {
             <button className="hamburger" id="hamburger">☰</button>
             
             <ul className="nav-links" id="nav-links">
-              <li><a href="#home">Home</a></li>
-              <li><a href="#Ages">Ages</a></li>
-              <li><a href="#price">Price</a></li>
-              <li><a href="#courses">Courses</a></li>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#contact">Contact</a></li>
+              <li><a href="#home">{t.home}</a></li>
+              <li><a href="#Ages">{t.ages}</a></li>
+              <li><a href="#price">{t.price}</a></li>
+              <li><a href="#courses">{t.courses}</a></li>
+              <li><a href="#faq">{t.faq}</a></li>
+              <li><a href="#contact">{t.contact}</a></li>
             </ul>
 
-            <div className="language-toggle" id="language-toggle">
-              <img src="https://flagcdn.com/w20/gb.png" alt="English" id="english-icon" className="language-icon active" />
-              <img src="https://flagcdn.com/w20/sa.png" alt="Arabic" id="arabic-icon" className="language-icon" />
+            <div className="language-toggle" id="language-toggle" onClick={toggleLanguage}>
+              <img src="https://flagcdn.com/w20/gb.png" alt="English" id="english-icon" className={`language-icon ${language === 'en' ? 'active' : ''}`} />
+              <img src="https://flagcdn.com/w20/sa.png" alt="Arabic" id="arabic-icon" className={`language-icon ${language === 'ar' ? 'active' : ''}`} />
             </div>
           </div>
         </nav>
@@ -295,9 +414,9 @@ const Index: React.FC = () => {
         <section className="hero" id="home">
           <div className="hero-container mx-auto px-5 py-8">
             <div className="hero-content">
-              <h1>Young Coders Today<br/>Future Tech Leaders</h1>
-              <p>Enroll your kids in interactive programming sessions and empower their future with expert instructors.</p>
-              <a href="http://wa.me/+201204262410" className="cta">Start Learning Today</a>
+              <h1>{t.heroTitle}</h1>
+              <p>{t.heroDesc}</p>
+              <a href="http://wa.me/+201204262410" className="cta">{t.startLearning}</a>
             </div>
             <img 
               src="https://i.postimg.cc/VNy5F8Dk/ezgif-com-animated-gif-maker-7.gif" 
@@ -309,7 +428,7 @@ const Index: React.FC = () => {
 
         
         <section className="content" id="Ages">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">Courses by Ages</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.coursesByAge}</h2>
           
           <div className="button-container grid grid-cols-2 md:grid-cols-5 gap-1">
             {Object.keys(coursesData).map(age => (
@@ -319,7 +438,7 @@ const Index: React.FC = () => {
                 data-group={age}
                 onClick={() => handleAgeChange(age)}
               >
-                Age {age}
+                {language === 'en' ? `Age ${age}` : `العمر ${age}`}
               </button>
             ))}
           </div>
@@ -331,7 +450,7 @@ const Index: React.FC = () => {
 
         
         <section className="content" id="courses">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Courses</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.courses}</h2>
           
           <div className="slider-container">
             <div className="slider" ref={sliderRef}>
@@ -380,9 +499,9 @@ const Index: React.FC = () => {
 
         
         <section className="content" id="price">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">Pricing Plans</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">{t.pricingPlans}</h2>
           <p className="text-center text-gray-700 mb-6">
-            Choose the right plan. We offer private plans for a single child and general plans for a group of 8-10 children. Choose what suits your needs.
+            {t.pricingDesc}
           </p>
 
           <div className="container mx-auto px-4">
@@ -391,13 +510,13 @@ const Index: React.FC = () => {
                 className={`general-btn ${selectedPlan === 'general' ? 'active' : ''}`} 
                 onClick={() => togglePlans('general')}
               >
-                General
+                {t.general}
               </button>
               <button 
                 className={`private-btn ${selectedPlan === 'private' ? 'active' : ''}`} 
                 onClick={() => togglePlans('private')}
               >
-                Private
+                {t.private}
               </button>
             </div>
 
@@ -406,80 +525,80 @@ const Index: React.FC = () => {
               
               <div className={`active-cards private ${selectedPlan === 'private' ? 'flex' : 'hidden'}`}>
                 <div className="card private-card">
-                  <div className="card-title basic">Basic</div>
-                  <div className="price">2000 EGP / month</div>
-                  <div className="discount">0% off</div>
+                  <div className="card-title basic">{t.basic}</div>
+                  <div className="price">2000 EGP {t.perMonth}</div>
+                  <div className="discount">0% {t.off}</div>
                   <span className="line-through">2000.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.pricePerMonth}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.noDiscount}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 2000")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 2000")}>{t.bookNow}</button>
                 </div>
                 <div className="card private-card">
-                  <div className="card-title advanced rounded-t-lg">Advanced</div>
-                  <div className="price">3400 EGP / month</div>
-                  <div className="discount">15% off</div>
+                  <div className="card-title advanced rounded-t-lg">{t.advanced}</div>
+                  <div className="price">3400 EGP {t.perMonth}</div>
+                  <div className="discount">15% {t.off}</div>
                   <span className="line-through">4000.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;2 months plan</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;600 Discount applied</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;2 {t.monthsPlan}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;600 {t.discountApplied}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 3400")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 3400")}>{t.bookNow}</button>
                 </div>
                 <div className="card private-card shadow-card">
-                  <div className="card-title special rounded-t-lg">Special</div>
-                  <div className="price">7500 EGP / month</div>
-                  <div className="discount">25% off</div>
+                  <div className="card-title special rounded-t-lg">{t.special}</div>
+                  <div className="price">7500 EGP {t.perMonth}</div>
+                  <div className="discount">25% {t.off}</div>
                   <span className="line-through">10000.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;2500 Discount applied</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;5 {t.monthsPlan}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;2500 {t.discountApplied}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 7500")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 7500")}>{t.bookNow}</button>
                 </div>
               </div>
 
               
               <div className={`active-cards general ${selectedPlan === 'general' ? 'flex' : 'hidden'}`}>
                 <div className="card general-card">
-                  <div className="card-title basic rounded-t-lg">Basic</div>
-                  <div className="price">600 EGP / month</div>
-                  <div className="discount">0% off</div>
+                  <div className="card-title basic rounded-t-lg">{t.basic}</div>
+                  <div className="price">600 EGP {t.perMonth}</div>
+                  <div className="discount">0% {t.off}</div>
                   <span className="line-through">600.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;Price per month</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;No discount</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.pricePerMonth}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.noDiscount}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 600")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 600")}>{t.bookNow}</button>
                 </div>
                 <div className="card general-card">
-                  <div className="card-title advanced rounded-t-lg">Advanced</div>
-                  <div className="price">1530 EGP / month</div>
-                  <div className="discount">15% off</div>
+                  <div className="card-title advanced rounded-t-lg">{t.advanced}</div>
+                  <div className="price">1530 EGP {t.perMonth}</div>
+                  <div className="discount">15% {t.off}</div>
                   <span className="line-through">1800.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;3 months plan</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;270 Discount applied</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;3 {t.monthsPlan}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;270 {t.discountApplied}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 1530")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 1530")}>{t.bookNow}</button>
                 </div>
                 <div className="card general-card shadow-card">
-                  <div className="card-title special rounded-t-lg">Special</div>
-                  <div className="price">2250 EGP / month</div>
-                  <div className="discount">25% off</div>
+                  <div className="card-title special rounded-t-lg">{t.special}</div>
+                  <div className="price">2250 EGP {t.perMonth}</div>
+                  <div className="discount">25% {t.off}</div>
                   <span className="line-through">3000.00</span>
-                  <span className="text-xs">OLD PRICE</span>
+                  <span className="text-xs">{t.oldPrice}</span>
                   <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;5 months plan</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;750 Discount applied</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;5 {t.monthsPlan}</li>
+                    <li><span className="check">✓</span>&nbsp;&nbsp;750 {t.discountApplied}</li>
                   </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 2250")}>Book Now</button>
+                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 2250")}>{t.bookNow}</button>
                 </div>
               </div>
             </div>
@@ -488,9 +607,9 @@ const Index: React.FC = () => {
 
         
         <section className="content">
-          <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">Student Projects</h1>
+          <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.studentProjects}</h1>
           <p className="text-center text-gray-600 mb-8">
-            Our students' projects have led to major success stories, including scholarships and global competitions.
+            {t.studentsDesc}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
@@ -543,42 +662,42 @@ const Index: React.FC = () => {
 
         
         <section className="content flex my-10 flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">Branches</h1>
+          <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">{t.branches}</h1>
 
           <div className="relative w-11/12 max-w-md h-64 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-500 hover:scale-105">
             <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className="w-full h-full object-cover" />
           </div>
 
           <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-            <label htmlFor="locationSelect" className="text-lg font-medium text-gray-700">Choose the branch:</label>
+            <label htmlFor="locationSelect" className="text-lg font-medium text-gray-700">{t.chooseBranch}</label>
             <select 
               id="locationSelect" 
               className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
               value={selectedLocation}
               onChange={handleLocationChange}
             >
-              <option value="select">Select</option>
-              <option value="El minia">El minia</option>
-              <option value="new_El minia">New minia</option>
-              <option value="smaluat">Smaluat</option>
-              <option value="magagh">Magagh</option>
-              <option value="bany_mazar">Bani Mazar</option>
-              <option value="abo_gurags">Abu Qurqas</option>
-              <option value="mallya">Mallawi</option>
-              <option value="online">Online</option>
+              <option value="select">{language === 'en' ? 'Select' : 'اختر'}</option>
+              <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
+              <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
+              <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
+              <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
+              <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
+              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+              <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
+              <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
             </select>
           </div>
           
           <div className="mt-6 text-center text-lg font-medium text-gray-700 bg-white p-4 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105 max-w-md w-full">
             {selectedLocation === "select" 
-              ? "Select a branch to see the details." 
+              ? t.selectBranch 
               : locationData[selectedLocation]}
           </div>
         </section>
 
         
         <section className="content" id="images">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Students</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.students}</h2>
           
           <div className="slider-container">
             <div className="slider" ref={studentsSliderRef}>
@@ -606,13 +725,13 @@ const Index: React.FC = () => {
         </section>
         
         <section className="content booking-section" id="booking" ref={bookingFormRef}>
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">Book Your Course</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.bookYourCourse}</h2>
           
           <div className="booking-form-container max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-6">
             {selectedPricePlan && (
               <div className="selected-plan-banner mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
                 <p className="text-blue-800 font-medium">
-                  You're booking the <span className="font-bold">{selectedPricePlan}</span> plan
+                  {t.bookingFor} <span className="font-bold">{selectedPricePlan}</span> {t.plan}
                 </p>
               </div>
             )}
@@ -620,24 +739,24 @@ const Index: React.FC = () => {
             <form id="userForm" onSubmit={handleFormSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t.phoneNumber} *</label>
                   <input 
                     type="tel" 
                     id="phone" 
                     name="phone" 
-                    placeholder="Phone number with country key" 
+                    placeholder={language === 'en' ? "Phone number with country key" : "رقم الهاتف مع مفتاح الدولة"}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required 
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t.fullName} *</label>
                   <input 
                     type="text" 
                     id="name" 
                     name="name" 
-                    placeholder="Your name" 
+                    placeholder={language === 'en' ? "Your name" : "اسمك"}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required 
                   />
@@ -646,7 +765,7 @@ const Index: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">Age *</label>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">{t.age} *</label>
                   <select 
                     id="age" 
                     name="age" 
@@ -662,72 +781,84 @@ const Index: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">{t.branch} *</label>
                   <select 
                     id="branch" 
                     name="branch" 
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
-                    <option value="">Select a branch</option>
-                    <option value="El minia">El minia</option>
-                    <option value="new_El minia">New minia</option>
-                    <option value="smaluat">Smaluat</option>
-                    <option value="magagh">Magagh</option>
-                    <option value="bany_mazar">Bani Mazar</option>
-                    <option value="abo_gurags">Abu Qurqas</option>
-                    <option value="mallya">Mallawi</option>
-                    <option value="online">Online</option>
+                    <option value="">{t.selectBranchOption}</option>
+                    <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
+                    <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
+                    <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
+                    <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
+                    <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
+                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+                    <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
+                    <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Have you taken a course with us before?</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourse}</label>
                 <div className="yes-no-buttons">
                   <button 
                     type="button" 
                     className={continueCourse ? "active" : ""} 
                     onClick={() => toggleCourseInput(true)}
                   >
-                    Yes
+                    {t.yes}
                   </button>
                   <button 
                     type="button" 
                     className={!continueCourse ? "active" : ""} 
                     onClick={() => toggleCourseInput(false)}
                   >
-                    No
+                    {t.no}
                   </button>
                 </div>
               </div>
 
               <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
-                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">Previous course name</label>
-                <input 
-                  type="text" 
+                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
+                <select 
                   id="course" 
                   name="course" 
-                  placeholder="Enter the course name" 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="Start from begining">{language === 'en' ? 'Start from beginning' : 'البدء من البداية'}</option>
+                  <option value="Pictoblox Basics">{language === 'en' ? 'Pictoblox Basics' : 'أساسيات بيكتوبلوكس'}</option>
+                  <option value="Pictoblox Advanced">{language === 'en' ? 'Pictoblox Advanced' : 'بيكتوبلوكس متقدم'}</option>  
+                  <option value="Pyhton Basics">{language === 'en' ? 'Python Basics' : 'أساسيات بايثون'}</option>
+                  <option value="AI with Python">{language === 'en' ? 'AI with Python' : 'الذكاء الاصطناعي مع بايثون'}</option>
+                  <option value="Machine Learning">{language === 'en' ? 'Machine Learning' : 'تعلم الآلة'}</option>
+                  <option value="Arduino Level 1">{language === 'en' ? 'Arduino Level 1' : 'أردوينو المستوى 1'}</option>
+                  <option value="Arduino level 2">{language === 'en' ? 'Arduino level 2' : 'أردوينو المستوى 2'}</option>
+                  <option value="Arduino Projects">{language === 'en' ? 'Arduino Projects' : 'مشاريع أردوينو'}</option>
+                  <option value="Web HTML">{language === 'en' ? 'Web HTML' : 'تطوير الويب HTML'}</option>
+                  <option value="Web CSS">{language === 'en' ? 'Web CSS' : 'تطوير الويب CSS'}</option>
+                  <option value="Web JavaScript">{language === 'en' ? 'Web JavaScript' : 'تطوير الويب JavaScript'}</option>
+                  <option value="Other">{language === 'en' ? 'Other' : 'أخرى'}</option>
+                </select>
               </div>
 
               <div>
-                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">Course Plan *</label>
+                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">{t.coursePlan} *</label>
                 <select 
                   id="course-Pric-sel" 
                   name="course-Pric-sel" 
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
-                  <option value="">Select a plan</option>
-                  <option value="Private 2000">Private Basic - 2000 EGP/month</option>
-                  <option value="Private 3400">Private Advanced - 3400 EGP/month</option>
-                  <option value="Private 7500">Private Special - 7500 EGP/month</option>
-                  <option value="General 600">General Basic - 600 EGP/month</option>
-                  <option value="General 1530">General Advanced - 1530 EGP/month</option>
-                  <option value="General 2250">General Special - 2250 EGP/month</option>
+                  <option value="">{t.selectPlan}</option>
+                  <option value="Private 2000">{language === 'en' ? 'Private Basic - 2000 EGP/month' : 'خاص أساسي - 2000 جنيه/شهر'}</option>
+                  <option value="Private 3400">{language === 'en' ? 'Private Advanced - 3400 EGP/month' : 'خاص متقدم - 3400 جنيه/شهر'}</option>
+                  <option value="Private 7500">{language === 'en' ? 'Private Special - 7500 EGP/month' : 'خاص مميز - 7500 جنيه/شهر'}</option>
+                  <option value="General 600">{language === 'en' ? 'General Basic - 600 EGP/month' : 'عام أساسي - 600 جنيه/شهر'}</option>
+                  <option value="General 1530">{language === 'en' ? 'General Advanced - 1530 EGP/month' : 'عام متقدم - 1530 جنيه/شهر'}</option>
+                  <option value="General 2250">{language === 'en' ? 'General Special - 2250 EGP/month' : 'عام مميز - 2250 جنيه/شهر'}</option>
                 </select>
               </div>
 
@@ -736,7 +867,7 @@ const Index: React.FC = () => {
                   type="submit" 
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
                 >
-                  Submit Booking
+                  {t.submit}
                 </Button>
               </div>
             </form>
@@ -744,7 +875,7 @@ const Index: React.FC = () => {
         </section>
 
         <section className="content" id="faq">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">FAQs</h2>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.faq}</h2>
           <div className="faq-container max-w-4xl mx-auto">
             <div className="faq" data-color="rgba(255, 165, 0, 0.7)">
               <div 
@@ -752,9 +883,9 @@ const Index: React.FC = () => {
                 onClick={(e) => toggleFAQ(e.currentTarget)}
               >
                 <div className="faq-icon" style={{background: 'orange'}}>▶</div>
-                What age group are your courses designed for?
+                {language === 'en' ? 'What age group are your courses designed for?' : 'ما هي الفئة العمرية التي صممت دوراتك لها؟'}
               </div>
-              <div className="faq-content">Our courses are tailored for children aged 7-17 years...</div>
+              <div className="faq-content">{language === 'en' ? 'Our courses are tailored for children aged 7-17 years...' : 'دوراتنا مصممة للأطفال الذين تتراوح أعمارهم بين 7 و 17 عامًا...'}</div>
             </div>
             
             <div className="faq" data-color="rgba(255, 99, 71, 0.7)">
@@ -763,9 +894,9 @@ const Index: React.FC = () => {
                 onClick={(e) => toggleFAQ(e.currentTarget)}
               >
                 <div className="faq-icon" style={{background: 'red'}}>▶</div>
-                When does the course start?
+                {language === 'en' ? 'When does the course start?' : 'متى تبدأ الدورة؟'}
               </div>
-              <div className="faq-content">After registration, we will contact you via WhatsApp once the group is formed.</div>
+              <div className="faq-content">{language === 'en' ? 'After registration, we will contact you via WhatsApp once the group is formed.' : 'بعد التسجيل، سنتواصل معك عبر واتساب بمجرد تشكيل المجموعة.'}</div>
             </div>
             
             <div className="faq" data-color="rgba(60, 179, 113, 0.7)">
@@ -774,9 +905,9 @@ const Index: React.FC = () => {
                 onClick={(e) => toggleFAQ(e.currentTarget)}
               >
                 <div className="faq-icon" style={{background: 'darkgreen'}}>▶</div>
-                How are the course schedules determined?
+                {language === 'en' ? 'How are the course schedules determined?' : 'كيف يتم تحديد جداول الدورة؟'}
               </div>
-              <div className="faq-content">Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.</div>
+              <div className="faq-content">{language === 'en' ? 'Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.' : 'بمجرد تشكيل المجموعة، ننشئ مجموعة واتساب ونناقش الجدول الزمني الأكثر ملاءمة للجميع.'}</div>
             </div>
             
             <div className="faq" data-color="rgba(218, 165, 32, 0.7)">
@@ -785,9 +916,9 @@ const Index: React.FC = () => {
                 onClick={(e) => toggleFAQ(e.currentTarget)}
               >
                 <div className="faq-icon" style={{background: 'goldenrod'}}>▶</div>
-                Is there a sibling discount?
+                {language === 'en' ? 'Is there a sibling discount?' : 'هل هناك خصم للأخوة؟'}
               </div>
-              <div className="faq-content">Yes, there is a 10% discount.</div>
+              <div className="faq-content">{language === 'en' ? 'Yes, there is a 10% discount.' : 'نعم، هناك خصم 10٪.'}</div>
             </div>
             
             <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
@@ -796,9 +927,9 @@ const Index: React.FC = () => {
                 onClick={(e) => toggleFAQ(e.currentTarget)}
               >
                 <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
-                How do I know which course is right for my child?
+                {language === 'en' ? 'How do I know which course is right for my child?' : 'كيف أعرف أي دورة مناسبة لطفلي؟'}
               </div>
-              <div className="faq-content">We offer a free assessment session to determine the most suitable course based on your child's interests and abilities.</div>
+              <div className="faq-content">{language === 'en' ? 'We offer a free assessment session to determine the most suitable course based on your child's interests and abilities.' : 'نقدم جلسة تقييم مجانية لتحديد الدورة الأنسب بناءً على اهتمامات طفلك وقدراته.'}</div>
             </div>
           </div>
         </section>
