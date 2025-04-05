@@ -60,7 +60,6 @@ const Index: React.FC = () => {
   };
 
   useEffect(() => {
-    // Hamburger menu toggle logic
     const hamburger = document.getElementById("hamburger");
     const navLinks = document.getElementById("nav-links");
     
@@ -70,7 +69,6 @@ const Index: React.FC = () => {
       });
     }
 
-    // Auto slide for course slider
     const interval = setInterval(() => {
       if (sliderRef.current) {
         const firstSlide = sliderRef.current.querySelector('.slide');
@@ -89,7 +87,6 @@ const Index: React.FC = () => {
         }
       }
 
-      // Do the same for students slider
       if (studentsSliderRef.current) {
         const firstSlide = studentsSliderRef.current.querySelector('.slide');
         if (firstSlide) {
@@ -108,7 +105,6 @@ const Index: React.FC = () => {
       }
     }, 3000);
 
-    // Render courses for the default active age
     renderCourses(activeAge);
 
     return () => clearInterval(interval);
@@ -122,7 +118,6 @@ const Index: React.FC = () => {
   const togglePlans = (planType: string) => {
     setSelectedPlan(planType);
     
-    // Show the appropriate pricing cards
     const generalCards = document.querySelector('.general');
     const privateCards = document.querySelector('.private');
     
@@ -154,7 +149,6 @@ const Index: React.FC = () => {
     const courseListContainer = document.getElementById('course-list');
     if (!courseListContainer || !coursesData[ageGroup as keyof typeof coursesData]) return;
     
-    // Create HTML for the selected age group's courses
     const coursesHTML = `
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         ${coursesData[ageGroup as keyof typeof coursesData].map(course => `
@@ -198,7 +192,6 @@ const Index: React.FC = () => {
       }
     }
     
-    // Toggle active class on buttons
     const yesNoButtons = document.querySelectorAll('.yes-no-buttons button');
     yesNoButtons.forEach((btn, index) => {
       if ((index === 0 && value) || (index === 1 && !value)) {
@@ -223,7 +216,6 @@ const Index: React.FC = () => {
     const previousCourse = previousCourseButton && previousCourseButton.textContent === 'Yes';
     const course = previousCourse ? formData.get('course') as string : null;
 
-    // Validate input data
     if (!name || !phone || !age || !branch || !plan) {
       toast.error('Please fill out all required fields.');
       return;
@@ -257,7 +249,6 @@ const Index: React.FC = () => {
       <Header />
       
       <main className="flex-1">
-        {/* Custom Navigation */}
         <nav className="custom-nav bg-white shadow-md py-4">
           <div className="container mx-auto px-4 flex justify-between items-center">
             <button className="hamburger" id="hamburger">☰</button>
@@ -271,7 +262,6 @@ const Index: React.FC = () => {
               <li><a href="#contact">Contact</a></li>
             </ul>
 
-            {/* Language Toggle */}
             <div className="language-toggle" id="language-toggle">
               <img src="https://flagcdn.com/w20/gb.png" alt="English" id="english-icon" className="language-icon active" />
               <img src="https://flagcdn.com/w20/sa.png" alt="Arabic" id="arabic-icon" className="language-icon" />
@@ -279,7 +269,6 @@ const Index: React.FC = () => {
           </div>
         </nav>
 
-        {/* Hero Section */}
         <section className="hero" id="home">
           <div className="hero-container mx-auto px-5 py-8">
             <div className="hero-content">
@@ -295,7 +284,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Ages Section */}
         <section className="content" id="Ages">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">Courses by Ages</h2>
           
@@ -317,13 +305,11 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Courses Slider Section */}
         <section className="content" id="courses">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Courses</h2>
           
           <div className="slider-container">
             <div className="slider" ref={sliderRef}>
-              {/* Project 1 */}
               <div className="slide">
                 <img src="https://i.postimg.cc/fysgZ6HW/ezgif-com-animated-gif-maker-4.gif" alt="Snake Game" />
                 <div className="slide-info">
@@ -332,7 +318,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* Project 2 */}
               <div className="slide">
                 <img src="https://i.postimg.cc/7Lsmj5zV/ezgif-com-animated-gif-maker-5.gif" alt="Calculator using Python" />
                 <div className="slide-info">
@@ -341,7 +326,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* Project 3 */}
               <div className="slide">
                 <img src="https://i.postimg.cc/0yX3mXNZ/ezgif-com-animated-gif-maker-2.gif" alt="Geometric Drawing Game" />
                 <div className="slide-info">
@@ -350,7 +334,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* Project 4 */}
               <div className="slide">
                 <img src="https://i.postimg.cc/G2GSWcxS/ezgif-com-animated-gif-maker-1.gif" alt="Planet Website Design" />
                 <div className="slide-info">
@@ -359,7 +342,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* Project 5 */}
               <div className="slide">
                 <img src="https://i.postimg.cc/WbHG3dvK/apple-ezgif-com-resize.gif" alt="Apple War Game" />
                 <div className="slide-info">
@@ -371,7 +353,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Pricing Section */}
         <section className="content" id="price">
           <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">Pricing Plans</h2>
           <p className="text-center text-gray-700 mb-6">
@@ -396,9 +377,7 @@ const Index: React.FC = () => {
               </button>
             </div>
 
-            {/* Pricing Cards */}
             <div className="pricing-cards" id="pricing-cards">
-              {/* Private Plans */}
               <div className={`active-cards private ${selectedPlan === 'private' ? 'flex' : 'hidden'}`}>
                 <div className="card private-card">
                   <div className="card-title basic">Basic</div>
@@ -438,7 +417,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              {/* General Plans */}
               <div className={`active-cards general ${selectedPlan === 'general' ? 'flex' : 'hidden'}`}>
                 <div className="card general-card">
                   <div className="card-title basic rounded-t-lg">Basic</div>
@@ -481,7 +459,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Student Projects Section */}
         <section className="content">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">Student Projects</h1>
           <p className="text-center text-gray-600 mb-8">
@@ -489,7 +466,6 @@ const Index: React.FC = () => {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-            {/* Project 1 */}
             <div className="bg-white rounded-lg shadow-lg p-4">
               <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/B5COE6bLbgA" width="300" frameBorder="0" allowFullScreen></iframe>
               <h2 className="text-xl font-bold text-orange-500 mt-4">AI & Data Analysis</h2>
@@ -505,7 +481,6 @@ const Index: React.FC = () => {
               </p>
             </div>
 
-            {/* Project 2 */}
             <div className="bg-white rounded-lg shadow-lg p-4">
               <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/rgObQSfFWEw" width="300" frameBorder="0" allowFullScreen></iframe>
               <h2 className="text-xl font-bold text-green-500 mt-4">Engineering Design</h2>
@@ -521,7 +496,6 @@ const Index: React.FC = () => {
               </p>
             </div>
 
-            {/* Project 3 */}
             <div className="bg-white rounded-lg shadow-lg p-4">
               <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/Uw5SFcFbaxI" width="300" frameBorder="0" allowFullScreen></iframe>
               <h2 className="text-xl font-bold text-orange-500 mt-4">Advanced Arduino</h2>
@@ -539,7 +513,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Branches Section */}
         <section className="content flex my-10 flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">Branches</h1>
 
@@ -574,7 +547,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* Students Section */}
         <section className="content" id="images">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">Students</h2>
           
@@ -603,7 +575,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* FAQ Section */}
         <section className="content" id="faq">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">FAQs</h2>
           <div className="faq-container max-w-4xl mx-auto">
@@ -654,4 +625,103 @@ const Index: React.FC = () => {
             <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
               <div 
                 className="faq-header" 
-                onClick={(e) => toggleFAQ(e
+                onClick={(e) => toggleFAQ(e.currentTarget)}
+              >
+                <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
+                Do you offer online courses?
+              </div>
+              <div className="faq-content">Yes, we have an online branch where students can learn remotely!</div>
+            </div>
+          </div>
+        </section>
+
+        {showForm && (
+          <div className="form-container" id="form-container">
+            <div className="form-header">
+              <h2 className="from-head">Booking Form</h2>
+            </div>
+
+            <form id="userForm" onSubmit={handleFormSubmit}>
+              <label htmlFor="phone">Phone Number</label>
+              <input type="tel" id="phone" name="phone" placeholder="Phone number with country key" required />
+
+              <label htmlFor="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required />
+
+              <label htmlFor="age">Age</label>
+              <select id="age" name="age" required>
+                <option value="7-9">7-9</option>
+                <option value="10-12">10-12</option>
+                <option value="13-15">13-15</option>
+                <option value="16-18">16-18</option>
+                <option value="19-40">19-40</option>
+              </select>
+
+              <label htmlFor="branch">Choose Suitable branch</label>
+              <select id="branch" name="branch" required>
+                <option value="El minia">El minia</option>
+                <option value="New EL minia">New minia</option>
+                <option value="Abu Qurqas">Abu Qurqas</option>
+                <option value="Mallawi">Mallawi</option>
+                <option value="Maghagha">Maghagha</option>
+                <option value="Bani Mazar">Bani Mazar</option>
+                <option value="Samalut">Samalut</option>
+                <option value="Online">Online</option>
+              </select>
+
+              <label htmlFor="Complete">Did you already start any course with us before and need to complete the courses?</label>
+              <div className="yes-no-buttons">
+                <button type="button" onClick={() => toggleCourseInput(true)} className={continueCourse ? 'active' : ''}>Yes</button>
+                <button type="button" onClick={() => toggleCourseInput(false)} className={!continueCourse ? 'active' : ''}>No</button>
+              </div>
+
+              <div className={`extra-course-input ${continueCourse ? 'active' : ''}`} id="extra-course-input">
+                <label htmlFor="course">Choose Course to Complete</label>
+                <select id="course" name="course">
+                  <option value="Start from begining">Start from beginning</option>
+                  <option value="Pictoblox Basics">Pictoblox Basics</option>
+                  <option value="Pictoblox Advanced">Pictoblox Advanced</option>  
+                  <option value="Pyhton Basics ">Python Basics</option>
+                  <option value="AI with Python ">AI with Python</option>
+                  <option value="Machine Learning">Machine Learning</option>
+                  <option value="Arduino Level 1">Arduino Level 1</option>
+                  <option value="Arduino level 2">Arduino level 2</option>
+                  <option value="Arduino Projects">Arduino Projects</option>
+                  <option value="Web HTML">Web HTML</option>
+                  <option value="Web CSS">Web CSS</option>
+                  <option value="Web JavaScript">Web JavaScript</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="course-Price" id="course-Price">
+                <label htmlFor="course-Pric-sel">Choose Price plan</label>
+                <select id="course-Pric-sel" name="course-Pric-sel">
+                  <option value="Private 7500">Private 7500 EGB for Five Months 25% discount</option>
+                  <option value="Private 3400">Private 3400 EGB for Two Months 15% discount</option>
+                  <option value="Private 2000">Private 2000 EGB for One Month 0% discount</option>
+                  <option value="General 2250">General 2250 EGB for Five Months 25% discount</option>
+                  <option value="General 1530">General 1530 EGB for Three Months 15% discount</option>
+                  <option value="General 600">General 600 EGB for One Month 0% discount</option>
+                </select>
+              </div>
+
+              <div className="submit-cancel">
+                <button type="submit">Submit</button>
+                <button type="button" className="close-btn" onClick={handleCloseForm}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+        </a>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Index;
