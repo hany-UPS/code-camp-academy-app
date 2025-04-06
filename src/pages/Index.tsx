@@ -208,11 +208,14 @@ const Index: React.FC = () => {
       }
     }, 3000);
 
-    
     renderCourses(activeAge);
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    document.body.dir = language === "ar" ? "rtl" : "ltr";
+  }, [language]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === "en" ? "ar" : "en");
@@ -224,8 +227,6 @@ const Index: React.FC = () => {
       englishIcon.classList.toggle("active");
       arabicIcon.classList.toggle("active");
     }
-    
-    document.body.dir = language === "en" ? "rtl" : "ltr";
   };
 
   const handleAgeChange = (age: string) => {
@@ -644,4 +645,200 @@ const Index: React.FC = () => {
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">{t.branches}</h1>
 
           <div className="relative w-11/12 max-w-md h-64 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-500 hover:scale-105">
-            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of
+            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className="w-full h-full object-cover" />
+          </div>
+
+          <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+            <label htmlFor="locationSelect" className="text-lg font-medium text-gray-700">{t.chooseBranch}</label>
+            <select 
+              id="locationSelect" 
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
+              value={selectedLocation}
+              onChange={handleLocationChange}
+            >
+              <option value="select">{language === 'en' ? 'Select' : 'اختر'}</option>
+              <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
+              <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
+              <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
+              <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
+              <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
+              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+              <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
+              <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
+            </select>
+          </div>
+          
+          <div className="mt-6 text-center text-lg font-medium text-gray-700 bg-white p-4 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105 max-w-md w-full">
+            {selectedLocation === "select" 
+              ? t.selectBranch 
+              : locationData[selectedLocation]}
+          </div>
+        </section>
+
+        <section className="content booking-section" id="booking" ref={bookingFormRef}>
+          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.bookYourCourse}</h2>
+          
+          <div className="booking-form-container max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-6">
+            {selectedPricePlan && (
+              <div className="selected-plan-banner mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
+                <p className="text-blue-800 font-medium">
+                  {t.bookingFor} <span className="font-bold">{selectedPricePlan}</span> {t.plan}
+                </p>
+              </div>
+            )}
+            
+            <form id="userForm" onSubmit={handleFormSubmit} className="space-y-6">
+              {/* Personal Info Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t.phoneNumber} *</label>
+                  <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder={language === 'en' ? "Phone number with country key" : "رقم الهاتف مع مفتاح الدولة"}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required 
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t.fullName} *</label>
+                  <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    placeholder={language === 'en' ? "Your name" : "اسمك"}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required 
+                  />
+                </div>
+              </div>
+
+              {/* Age and Branch Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">{t.age} *</label>
+                  <select 
+                    id="age" 
+                    name="age" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="7-9">7-9</option>
+                    <option value="10-12">10-12</option>
+                    <option value="13-15">13-15</option>
+                    <option value="16-18">16-18</option>
+                    <option value="19-40">19-40</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">{t.branch} *</label>
+                  <select 
+                    id="branch" 
+                    name="branch" 
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">{t.selectBranchOption}</option>
+                    <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
+                    <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
+                    <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
+                    <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
+                    <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
+                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+                    <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
+                    <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Previous Course Question */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourse}</label>
+                <div className="yes-no-buttons">
+                  <button 
+                    type="button" 
+                    className={continueCourse ? "active" : ""} 
+                    onClick={() => toggleCourseInput(true)}
+                  >
+                    {t.yes}
+                  </button>
+                  <button 
+                    type="button" 
+                    className={!continueCourse ? "active" : ""} 
+                    onClick={() => toggleCourseInput(false)}
+                  >
+                    {t.no}
+                  </button>
+                </div>
+              </div>
+
+              {/* Previous Course Name Dropdown - Now properly formatted as a dropdown */}
+              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
+                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
+                <select 
+                  id="course" 
+                  name="course" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Start from begining">{language === 'en' ? 'Start from beginning' : 'البدء من البداية'}</option>
+                  <option value="Pictoblox Basics">{language === 'en' ? 'Pictoblox Basics' : 'أساسيات بيكتوبلوكس'}</option>
+                  <option value="Pictoblox Advanced">{language === 'en' ? 'Pictoblox Advanced' : 'بيكتوبلوكس متقدم'}</option>  
+                  <option value="Pyhton Basics">{language === 'en' ? 'Python Basics' : 'أساسيات بايثون'}</option>
+                  <option value="AI with Python">{language === 'en' ? 'AI with Python' : 'الذكاء الاصطناعي مع بايثون'}</option>
+                  <option value="Machine Learning">{language === 'en' ? 'Machine Learning' : 'تعلم الآلة'}</option>
+                  <option value="Arduino Level 1">{language === 'en' ? 'Arduino Level 1' : 'أردوينو المستوى 1'}</option>
+                  <option value="Arduino level 2">{language === 'en' ? 'Arduino level 2' : 'أردوينو المستوى 2'}</option>
+                  <option value="Arduino Projects">{language === 'en' ? 'Arduino Projects' : 'مشاريع أردوينو'}</option>
+                  <option value="Web HTML">{language === 'en' ? 'Web HTML' : 'تطوير الويب HTML'}</option>
+                  <option value="Web CSS">{language === 'en' ? 'Web CSS' : 'تطوير الويب CSS'}</option>
+                  <option value="Web JavaScript">{language === 'en' ? 'Web JavaScript' : 'تطوير الويب JavaScript'}</option>
+                  <option value="Other">{language === 'en' ? 'Other' : 'أخرى'}</option>
+                </select>
+              </div>
+
+              {/* Course Plan */}
+              <div>
+                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">{t.coursePlan} *</label>
+                <select 
+                  id="course-Pric-sel" 
+                  name="course-Pric-sel" 
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">{t.selectPlan}</option>
+                  <option value="Private 2000">{language === 'en' ? 'Private Basic - 2000 EGP/month' : 'خاص أساسي - 2000 جنيه/شهر'}</option>
+                  <option value="Private 3400">{language === 'en' ? 'Private Advanced - 3400 EGP/month' : 'خاص متقدم - 3400 جنيه/شهر'}</option>
+                  <option value="Private 7500">{language === 'en' ? 'Private Special - 7500 EGP/month' : 'خاص مميز - 7500 جنيه/شهر'}</option>
+                  <option value="General 600">{language === 'en' ? 'General Basic - 600 EGP/month' : 'عام أساسي - 600 جنيه/شهر'}</option>
+                  <option value="General 1530">{language === 'en' ? 'General Advanced - 1530 EGP/month' : 'عام متقدم - 1530 جنيه/شهر'}</option>
+                  <option value="General 2250">{language === 'en' ? 'General Special - 2250 EGP/month' : 'عام مميز - 2250 جنيه/شهر'}</option>
+                </select>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end">
+                <Button 
+                  type="submit" 
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
+                >
+                  {t.submit}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/767px-WhatsApp.svg.png" alt="WhatsApp" />
+        </a>
+      </main>
+      
+      <Footer />
+    </div>
+  );
+};
+
+export default Index;
