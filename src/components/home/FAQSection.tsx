@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface FAQSectionProps {
   toggleFAQ: (index: number) => void;

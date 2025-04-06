@@ -55,7 +55,14 @@ const StudentProjects: React.FC<StudentProjectsProps> = ({ language, translation
       <div className="slider-container">
         <div className="slider" ref={studentsSliderRef}>
           <div className="slide">
-            <img src="https://i.postimg.cc/NFDK3qJP/student-project-1.jpg" alt="Student Project 1" />
+            <div className="youtube-embed">
+              <iframe 
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="Student Project 1"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
             <div className="slide-info">
               <div className="slide-title">{translations.project1Title}</div>
               <div className="slide-description">
@@ -66,7 +73,14 @@ const StudentProjects: React.FC<StudentProjectsProps> = ({ language, translation
           </div>
 
           <div className="slide">
-            <img src="https://i.postimg.cc/QCc7XY2h/student-project-2.jpg" alt="Student Project 2" />
+            <div className="youtube-embed">
+              <iframe 
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="Student Project 2"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
             <div className="slide-info">
               <div className="slide-title">{translations.project2Title}</div>
               <div className="slide-description">
@@ -77,7 +91,14 @@ const StudentProjects: React.FC<StudentProjectsProps> = ({ language, translation
           </div>
 
           <div className="slide">
-            <img src="https://i.postimg.cc/5NXyd9F1/student-project-3.jpg" alt="Student Project 3" />
+            <div className="youtube-embed">
+              <iframe 
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="Student Project 3"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
             <div className="slide-info">
               <div className="slide-title">{translations.project3Title}</div>
               <div className="slide-description">

@@ -1,3 +1,4 @@
+
 /* Custom Navigation */
 .custom-nav {
   position: sticky;
@@ -171,6 +172,22 @@
   width: 100%;
   height: 200px;
   object-fit: cover;
+}
+
+/* YouTube embed styling */
+.youtube-embed {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.youtube-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 .slide-info {
@@ -355,7 +372,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  color: white;
+  color: #333;
   margin-right: 1rem;
   font-size: 0.75rem;
   transition: transform 0.3s;
@@ -370,6 +387,7 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
+  background-color: white;
 }
 
 .faq.active .faq-content {
