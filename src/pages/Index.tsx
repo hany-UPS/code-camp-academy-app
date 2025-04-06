@@ -1,14 +1,17 @@
+
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import "@/styles/home.css";
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
   const [activeAge, setActiveAge] = useState<string>("7-9");
   const [selectedPlan, setSelectedPlan] = useState<string>("general");
   const sliderRef = useRef<HTMLDivElement>(null);
