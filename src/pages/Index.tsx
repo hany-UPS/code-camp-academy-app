@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -821,7 +820,7 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
+              <div id="extra-course-input" className={continueCourse ? 'active' : ''}>
                 <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
                 <select 
                   id="course" 
