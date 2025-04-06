@@ -1,11 +1,22 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
+
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import Header from "@/components/layout/Header";
+import Footer from "@/components/layout/Footer";
+import Navigation from "@/components/home/Navigation";
+import Hero from "@/components/home/Hero";
+import AgeCoursesSection from "@/components/home/AgeCoursesSection";
+import CoursesSlider from "@/components/home/CoursesSlider";
+import StudentProjects from "@/components/home/StudentProjects";
+import PricingSection from "@/components/home/PricingSection";
+import LocationSection from "@/components/home/LocationSection";
+import FAQSection from "@/components/home/FAQSection";
+import ContactSection from "@/components/home/ContactSection";
+import BookingForm from "@/components/home/BookingForm";
+import WhatsAppFloat from "@/components/home/WhatsAppFloat";
 import "@/styles/home.css";
 
 const Index: React.FC = () => {
@@ -13,12 +24,9 @@ const Index: React.FC = () => {
   const { isAuthenticated, logout } = useAuth();
   const [activeAge, setActiveAge] = useState<string>("7-9");
   const [selectedPlan, setSelectedPlan] = useState<string>("general");
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const studentsSliderRef = useRef<HTMLDivElement>(null);
   const [selectedLocation, setSelectedLocation] = useState<string>("select");
   const [continueCourse, setContinueCourse] = useState<boolean>(false);
   const [selectedPricePlan, setSelectedPricePlan] = useState<string>("");
-  const bookingFormRef = useRef<HTMLDivElement>(null);
   const [language, setLanguage] = useState<"en" | "ar">("en");
   
   const translations = {
@@ -226,56 +234,7 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     document.body.dir = language === "ar" ? "rtl" : "ltr";
-    
-    const hamburger = document.getElementById("hamburger");
-    const navLinks = document.getElementById("nav-links");
-    
-    if (hamburger && navLinks) {
-      hamburger.addEventListener("click", () => {
-        navLinks.classList.toggle("show");
-      });
-    }
-
-    const interval = setInterval(() => {
-      if (sliderRef.current) {
-        const firstSlide = sliderRef.current.querySelector('.slide');
-        if (firstSlide) {
-          sliderRef.current.appendChild(firstSlide.cloneNode(true));
-          sliderRef.current.style.transition = 'transform 0.5s ease-in-out';
-          sliderRef.current.style.transform = 'translateX(-300px)';
-          
-          setTimeout(() => {
-            if (sliderRef.current) {
-              sliderRef.current.style.transition = 'none';
-              sliderRef.current.style.transform = 'translateX(0)';
-              sliderRef.current.removeChild(sliderRef.current.firstChild as Node);
-            }
-          }, 500);
-        }
-      }
-
-      if (studentsSliderRef.current) {
-        const firstSlide = studentsSliderRef.current.querySelector('.slide');
-        if (firstSlide) {
-          studentsSliderRef.current.appendChild(firstSlide.cloneNode(true));
-          studentsSliderRef.current.style.transition = 'transform 0.5s ease-in-out';
-          studentsSliderRef.current.style.transform = 'translateX(-300px)';
-          
-          setTimeout(() => {
-            if (studentsSliderRef.current) {
-              studentsSliderRef.current.style.transition = 'none';
-              studentsSliderRef.current.style.transform = 'translateX(0)';
-              studentsSliderRef.current.removeChild(studentsSliderRef.current.firstChild as Node);
-            }
-          }, 500);
-        }
-      }
-    }, 3000);
-
-    renderCourses(activeAge);
-
-    return () => clearInterval(interval);
-  }, [activeAge, language]);
+  }, [language]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === "en" ? "ar" : "en");
@@ -291,7 +250,6 @@ const Index: React.FC = () => {
 
   const handleAgeChange = (age: string) => {
     setActiveAge(age);
-    renderCourses(age);
   };
 
   const togglePlans = (planType: string) => {
@@ -332,37 +290,12 @@ const Index: React.FC = () => {
     });
   };
 
-  const renderCourses = (ageGroup: string) => {
-    const courseListContainer = document.getElementById('course-list');
-    if (!courseListContainer || !coursesData[ageGroup as keyof typeof coursesData]) return;
-    
-    const coursesHTML = `
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        ${coursesData[ageGroup as keyof typeof coursesData].map(course => `
-          <div class="course-card bg-white rounded-lg shadow-lg overflow-hidden">
-            <div class="aspect-video w-full overflow-hidden">
-              <img 
-                src="${course.image}" 
-                alt="${course.title}" 
-                class="w-full h-full object-cover"
-              />
-            </div>
-            <div class="p-4">
-              <h3 class="text-xl font-semibold">${course.title}</h3>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    
-    courseListContainer.innerHTML = coursesHTML;
-  };
-
   const scrollToBookingForm = (planName: string) => {
     setSelectedPricePlan(planName);
     
-    if (bookingFormRef.current) {
-      bookingFormRef.current.scrollIntoView({ behavior: 'smooth' });
+    const bookingSection = document.getElementById('booking');
+    if (bookingSection) {
+      bookingSection.scrollIntoView({ behavior: 'smooth' });
       
       const coursePriceSel = document.getElementById('course-Pric-sel') as HTMLSelectElement;
       if (coursePriceSel) {
@@ -446,125 +379,81 @@ const Index: React.FC = () => {
       <Header />
       
       <main className="flex-1">
-        <nav className="custom-nav bg-white shadow-md py-4 px-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <Link to="/" className="text-2xl font-bold text-academy-blue">
-              Academy
-            </Link>
-            
-            <div className="flex items-center space-x-4">
-              <ul className="nav-links hidden md:flex items-center space-x-6" id="nav-links">
-                <li><a href="#home">{t.home}</a></li>
-                <li><a href="#Ages">{t.ages}</a></li>
-                <li><a href="#price">{t.price}</a></li>
-                <li><a href="#courses">{t.courses}</a></li>
-                <li><a href="#faq">{t.faq}</a></li>
-                <li><a href="#contact">{t.contact}</a></li>
-              </ul>
+        <Navigation 
+          language={language}
+          isAuthenticated={isAuthenticated}
+          toggleLanguage={toggleLanguage}
+          logout={logout}
+          translations={t}
+        />
 
-              <div className="language-toggle flex items-center" onClick={toggleLanguage}>
-                <img 
-                  src="https://flagcdn.com/w20/gb.png" 
-                  alt="English" 
-                  id="english-icon" 
-                  className={`language-icon ${language === 'en' ? 'active' : ''}`} 
-                />
-                <img 
-                  src="https://flagcdn.com/w20/sa.png" 
-                  alt="Arabic" 
-                  id="arabic-icon" 
-                  className={`language-icon ${language === 'ar' ? 'active' : ''}`} 
-                />
-              </div>
-              
-              {isAuthenticated ? (
-                <Button variant="outline" size="sm" onClick={logout}>
-                  {language === 'en' ? 'Logout' : 'تسجيل خروج'}
-                </Button>
-              ) : (
-                <Link to="/login">
-                  <Button variant="outline" size="sm">
-                    {language === 'en' ? 'Login' : 'تسجيل الدخول'}
-                  </Button>
-                </Link>
-              )}
+        <Hero 
+          language={language} 
+          translations={t} 
+        />
 
-              <button className="hamburger block md:hidden" id="hamburger">☰</button>
-            </div>
-          </div>
-          
-          {/* Mobile nav links - shown when hamburger is clicked */}
-          <div className="md:hidden">
-            <ul className="nav-links flex-col space-y-2 max-h-0 overflow-hidden" id="nav-links">
-              <li><a href="#home">{t.home}</a></li>
-              <li><a href="#Ages">{t.ages}</a></li>
-              <li><a href="#price">{t.price}</a></li>
-              <li><a href="#courses">{t.courses}</a></li>
-              <li><a href="#faq">{t.faq}</a></li>
-              <li><a href="#contact">{t.contact}</a></li>
-            </ul>
-          </div>
-        </nav>
+        <AgeCoursesSection 
+          activeAge={activeAge}
+          coursesData={coursesData}
+          onAgeChange={handleAgeChange}
+          language={language}
+          translations={t}
+        />
 
-        <section className="hero" id="home">
-          <div className="hero-container mx-auto px-5 py-8">
-            <div className="hero-content">
-              <h1>{t.heroTitle}</h1>
-              <p>{t.heroDesc}</p>
-              <a href="http://wa.me/+201204262410" className="cta">{t.startLearning}</a>
-            </div>
-            <img 
-              src="https://i.postimg.cc/VNy5F8Dk/ezgif-com-animated-gif-maker-7.gif" 
-              alt="Students learning to code" 
-              className="hero-image"
-            />
-          </div>
-        </section>
+        <CoursesSlider 
+          language={language} 
+          translations={t} 
+        />
 
-        <section className="content" id="Ages">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.coursesByAge}</h2>
-          
-          <div className="button-container grid grid-cols-2 md:grid-cols-5 gap-1">
-            {Object.keys(coursesData).map(age => (
-              <button 
-                key={age}
-                className={`button ${activeAge === age ? 'active' : ''}`} 
-                data-group={age}
-                onClick={() => handleAgeChange(age)}
-              >
-                {language === 'en' ? `Age ${age}` : `العمر ${age}`}
-              </button>
-            ))}
-          </div>
+        <StudentProjects 
+          language={language} 
+          translations={t} 
+        />
 
-          <div className="courses" id="course-list">
-            {/* Content dynamically generated by renderCourses */}
-          </div>
-        </section>
+        <PricingSection 
+          selectedPlan={selectedPlan}
+          togglePlans={togglePlans}
+          scrollToBookingForm={scrollToBookingForm}
+          language={language}
+          translations={t}
+        />
 
-        <section className="content" id="courses">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.courses}</h2>
-          
-          <div className="slider-container">
-            <div className="slider" ref={sliderRef}>
-              <div className="slide">
-                <img src="https://i.postimg.cc/fysgZ6HW/ezgif-com-animated-gif-maker-4.gif" alt="Snake Game" />
-                <div className="slide-info">
-                  <div className="slide-title">Snake Game using Pictoblox</div>
-                  <div className="slide-description">Advanced level of game design.</div>
-                </div>
-              </div>
+        <LocationSection 
+          selectedLocation={selectedLocation}
+          locationData={locationData}
+          handleLocationChange={handleLocationChange}
+          language={language}
+          translations={t}
+        />
 
-              <div className="slide">
-                <img src="https://i.postimg.cc/7Lsmj5zV/ezgif-com-animated-gif-maker-5.gif" alt="Calculator using Python" />
-                <div className="slide-info">
-                  <div className="slide-title">Calculator using Python</div>
-                  <div className="slide-description">Python level: Introduction to AI.</div>
-                </div>
-              </div>
+        <FAQSection 
+          toggleFAQ={toggleFAQ}
+          language={language}
+          translations={t}
+        />
 
-              <div className="slide">
-                <img src="https://i.postimg.cc/0yX3mXNZ/ezgif-com-animated-gif-maker-2.gif" alt="Geometric Drawing Game" />
-                <div className="slide-info">
-                  <div className="slide-title">Geometric Drawing Game</div>
-                  <div className="slide-description">Beginner level of game design.</div>
+        <ContactSection 
+          language={language} 
+          translations={t} 
+        />
+
+        <BookingForm 
+          selectedPricePlan={selectedPricePlan}
+          selectedLocation={selectedLocation}
+          continueCourse={continueCourse}
+          toggleCourseInput={toggleCourseInput}
+          locationData={locationData}
+          handleFormSubmit={handleFormSubmit}
+          language={language}
+          translations={t}
+        />
+
+        <WhatsAppFloat />
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Index;
