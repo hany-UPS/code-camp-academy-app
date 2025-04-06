@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -69,7 +68,37 @@ const Index: React.FC = () => {
       previousCourseName: "Previous course name",
       coursePlan: "Course Plan",
       selectPlan: "Select a plan",
-      submit: "Submit Booking"
+      submit: "Submit Booking",
+      faqTitle: "Frequently Asked Questions",
+      faqDesc: "Find answers to common questions about our courses and programs.",
+      contactTitle: "Contact Us",
+      contactDesc: "Have questions? Reach out to us through any of these channels.",
+      address: "Address",
+      phone: "Phone",
+      email: "Email",
+      followUs: "Follow Us",
+      faq1Title: "What age groups do you teach?",
+      faq1Answer: "We offer courses for children aged 7 to 18, as well as specialized programs for adults aged 19-40.",
+      faq2Title: "How long are the courses?",
+      faq2Answer: "Our courses typically run for 1 to 5 months, depending on the level and program you select.",
+      faq3Title: "Do I need to have prior programming experience?",
+      faq3Answer: "No, we offer courses for complete beginners as well as more advanced students.",
+      faq4Title: "What equipment do I need for online courses?",
+      faq4Answer: "You'll need a computer with internet connection and a webcam. Specific software requirements will be provided before the course starts.",
+      faq5Title: "Are there any discounts available?",
+      faq5Answer: "Yes, we offer discounts for multi-month commitments. The longer the commitment, the higher the discount.",
+      project1Title: "AI & Data Analysis",
+      project1Student: "Joyce",
+      project1Age: "15 years old",
+      project1Desc: "AI project focused on data analysis, big data algorithms, and machine learning models to solve real-world problems.",
+      project2Title: "Engineering Design",
+      project2Student: "Mariam",
+      project2Age: "10 years old",
+      project2Desc: "Car design and simulation using 3D modeling, aerodynamics analysis, and competing against professional engineers.",
+      project3Title: "Advanced Arduino",
+      project3Student: "Yustus",
+      project3Age: "11 years old",
+      project3Desc: "Electronics and microcontrollers, smart home automation, and building an electronic cane for the visually impaired."
     },
     ar: {
       home: "الرئيسية",
@@ -117,7 +146,37 @@ const Index: React.FC = () => {
       previousCourseName: "اسم الدورة السابقة",
       coursePlan: "خطة الدورة",
       selectPlan: "اختر خطة",
-      submit: "تقديم الحجز"
+      submit: "تقديم الحجز",
+      faqTitle: "الأسئلة الشائعة",
+      faqDesc: "اعثر على إجابات للأسئلة الشائعة حول دوراتنا وبرامجنا.",
+      contactTitle: "اتصل بنا",
+      contactDesc: "لديك أسئلة؟ تواصل معنا من خلال أي من هذه القنوات.",
+      address: "العنوان",
+      phone: "الهاتف",
+      email: "البريد الإلكتروني",
+      followUs: "تابعنا",
+      faq1Title: "ما هي الفئات العمرية التي تقومون بتدريسها؟",
+      faq1Answer: "نقدم دورات للأطفال من سن 7 إلى 18 عامًا، بالإضافة إلى برامج متخصصة للبالغين من سن 19-40.",
+      faq2Title: "كم هي مدة الدورات؟",
+      faq2Answer: "تستمر دوراتنا عادة من شهر إلى 5 أشهر، اعتمادًا على المستوى والبرنامج الذي تختاره.",
+      faq3Title: "هل أحتاج إلى خبرة برمجية مسبقة؟",
+      faq3Answer: "لا، نحن نقدم دورات للمبتدئين تمامًا وكذلك للطلاب الأكثر تقدمًا.",
+      faq4Title: "ما هي المعدات التي أحتاجها للدورات عبر الإنترنت؟",
+      faq4Answer: "ستحتاج إلى جهاز كمبيوتر متصل بالإنترنت وكاميرا ويب. سيتم توفير متطلبات البرامج المحددة قبل بدء الدورة.",
+      faq5Title: "هل هناك أي خصومات متاحة؟",
+      faq5Answer: "نعم، نقدم خصومات للالتزامات متعددة الأشهر. كلما طال الالتزام، زاد الخصم.",
+      project1Title: "الذكاء الاصطناعي وتحليل البيانات",
+      project1Student: "جويس",
+      project1Age: "15 سنة",
+      project1Desc: "مشروع ذكاء اصطناعي يركز على تحليل البيانات وخوارزميات البيانات الضخمة ونماذج التعلم الآلي لحل مشكلات العالم الحقيقي.",
+      project2Title: "التصميم الهندسي",
+      project2Student: "مريم",
+      project2Age: "10 سنوات",
+      project2Desc: "تصميم السيارات والمحاكاة باستخدام النمذجة ثلاثية الأبعاد، وتحليل الديناميكا الهوائية، والمنافسة ضد المهندسين المحترفين.",
+      project3Title: "الأردوينو المتقدم",
+      project3Student: "يوستوس",
+      project3Age: "11 سنة",
+      project3Desc: "الإلكترونيات والمتحكمات الدقيقة، وأتمتة المنزل الذكي، وبناء عصا إلكترونية للمعاقين بصرياً."
     }
   };
   
@@ -166,6 +225,8 @@ const Index: React.FC = () => {
   };
 
   useEffect(() => {
+    document.body.dir = language === "ar" ? "rtl" : "ltr";
+    
     const hamburger = document.getElementById("hamburger");
     const navLinks = document.getElementById("nav-links");
     
@@ -214,11 +275,7 @@ const Index: React.FC = () => {
     renderCourses(activeAge);
 
     return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    document.body.dir = language === "ar" ? "rtl" : "ltr";
-  }, [language]);
+  }, [activeAge, language]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === "en" ? "ar" : "en");
@@ -256,15 +313,23 @@ const Index: React.FC = () => {
     setSelectedLocation(e.target.value);
   };
 
-  const toggleFAQ = (header: HTMLElement) => {
-    const faq = header.parentElement;
-    if (faq) {
-      faq.classList.toggle('active');
-      const icon = header.querySelector('.faq-icon');
-      if (icon) {
-        icon.textContent = faq.classList.contains('active') ? '▼' : '▶';
+  const toggleFAQ = (index: number) => {
+    const faqs = document.querySelectorAll('.faq');
+    faqs.forEach((faq, i) => {
+      if (i === index) {
+        faq.classList.toggle('active');
+        const icon = faq.querySelector('.faq-icon') as HTMLElement;
+        if (icon) {
+          icon.textContent = faq.classList.contains('active') ? '▼' : '▶';
+        }
+      } else {
+        faq.classList.remove('active');
+        const icon = faq.querySelector('.faq-icon') as HTMLElement;
+        if (icon) {
+          icon.textContent = '▶';
+        }
       }
-    }
+    });
   };
 
   const renderCourses = (ageGroup: string) => {
@@ -381,12 +446,56 @@ const Index: React.FC = () => {
       <Header />
       
       <main className="flex-1">
-        
-        <nav className="custom-nav bg-white shadow-md py-4">
-          <div className="container mx-auto px-4 flex justify-between items-center">
-            <button className="hamburger" id="hamburger">☰</button>
+        <nav className="custom-nav bg-white shadow-md py-4 px-4">
+          <div className="container mx-auto flex justify-between items-center">
+            <Link to="/" className="text-2xl font-bold text-academy-blue">
+              Academy
+            </Link>
             
-            <ul className="nav-links" id="nav-links">
+            <div className="flex items-center space-x-4">
+              <ul className="nav-links hidden md:flex items-center space-x-6" id="nav-links">
+                <li><a href="#home">{t.home}</a></li>
+                <li><a href="#Ages">{t.ages}</a></li>
+                <li><a href="#price">{t.price}</a></li>
+                <li><a href="#courses">{t.courses}</a></li>
+                <li><a href="#faq">{t.faq}</a></li>
+                <li><a href="#contact">{t.contact}</a></li>
+              </ul>
+
+              <div className="language-toggle flex items-center" onClick={toggleLanguage}>
+                <img 
+                  src="https://flagcdn.com/w20/gb.png" 
+                  alt="English" 
+                  id="english-icon" 
+                  className={`language-icon ${language === 'en' ? 'active' : ''}`} 
+                />
+                <img 
+                  src="https://flagcdn.com/w20/sa.png" 
+                  alt="Arabic" 
+                  id="arabic-icon" 
+                  className={`language-icon ${language === 'ar' ? 'active' : ''}`} 
+                />
+              </div>
+              
+              {isAuthenticated ? (
+                <Button variant="outline" size="sm" onClick={logout}>
+                  {language === 'en' ? 'Logout' : 'تسجيل خروج'}
+                </Button>
+              ) : (
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    {language === 'en' ? 'Login' : 'تسجيل الدخول'}
+                  </Button>
+                </Link>
+              )}
+
+              <button className="hamburger block md:hidden" id="hamburger">☰</button>
+            </div>
+          </div>
+          
+          {/* Mobile nav links - shown when hamburger is clicked */}
+          <div className="md:hidden">
+            <ul className="nav-links flex-col space-y-2 max-h-0 overflow-hidden" id="nav-links">
               <li><a href="#home">{t.home}</a></li>
               <li><a href="#Ages">{t.ages}</a></li>
               <li><a href="#price">{t.price}</a></li>
@@ -394,11 +503,6 @@ const Index: React.FC = () => {
               <li><a href="#faq">{t.faq}</a></li>
               <li><a href="#contact">{t.contact}</a></li>
             </ul>
-
-            <div className="language-toggle" id="language-toggle" onClick={toggleLanguage}>
-              <img src="https://flagcdn.com/w20/gb.png" alt="English" id="english-icon" className={`language-icon ${language === 'en' ? 'active' : ''}`} />
-              <img src="https://flagcdn.com/w20/sa.png" alt="Arabic" id="arabic-icon" className={`language-icon ${language === 'ar' ? 'active' : ''}`} />
-            </div>
           </div>
         </nav>
 
@@ -434,7 +538,7 @@ const Index: React.FC = () => {
           </div>
 
           <div className="courses" id="course-list">
-            
+            {/* Content dynamically generated by renderCourses */}
           </div>
         </section>
 
@@ -464,384 +568,3 @@ const Index: React.FC = () => {
                 <div className="slide-info">
                   <div className="slide-title">Geometric Drawing Game</div>
                   <div className="slide-description">Beginner level of game design.</div>
-                </div>
-              </div>
-
-              <div className="slide">
-                <img src="https://i.postimg.cc/G2GSWcxS/ezgif-com-animated-gif-maker-1.gif" alt="Planet Website Design" />
-                <div className="slide-info">
-                  <div className="slide-title">Planet Website Design</div>
-                  <div className="slide-description">Second level of web design.</div>
-                </div>
-              </div>
-
-              <div className="slide">
-                <img src="https://i.postimg.cc/WbHG3dvK/apple-ezgif-com-resize.gif" alt="Apple War Game" />
-                <div className="slide-info">
-                  <div className="slide-title">Apple War Game</div>
-                  <div className="slide-description">Second level of game design.</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="content" id="price">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">{t.pricingPlans}</h2>
-          <p className="text-center text-gray-700 mb-6">
-            {t.pricingDesc}
-          </p>
-
-          <div className="container mx-auto px-4">
-            <div className="toggle-buttons mb-6">
-              <button 
-                className={`general-btn ${selectedPlan === 'general' ? 'active' : ''}`} 
-                onClick={() => togglePlans('general')}
-              >
-                {t.general}
-              </button>
-              <button 
-                className={`private-btn ${selectedPlan === 'private' ? 'active' : ''}`} 
-                onClick={() => togglePlans('private')}
-              >
-                {t.private}
-              </button>
-            </div>
-
-            <div className="pricing-cards" id="pricing-cards">
-              <div className={`active-cards private ${selectedPlan === 'private' ? 'flex' : 'hidden'}`}>
-                <div className="card private-card">
-                  <div className="card-title basic">{t.basic}</div>
-                  <div className="price">2000 EGP {t.perMonth}</div>
-                  <div className="discount">0% {t.off}</div>
-                  <span className="line-through">2000.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.pricePerMonth}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.noDiscount}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 2000")}>{t.bookNow}</button>
-                </div>
-                <div className="card private-card">
-                  <div className="card-title advanced rounded-t-lg">{t.advanced}</div>
-                  <div className="price">3400 EGP {t.perMonth}</div>
-                  <div className="discount">15% {t.off}</div>
-                  <span className="line-through">4000.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;2 {t.monthsPlan}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;600 {t.discountApplied}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 3400")}>{t.bookNow}</button>
-                </div>
-                <div className="card private-card shadow-card">
-                  <div className="card-title special rounded-t-lg">{t.special}</div>
-                  <div className="price">7500 EGP {t.perMonth}</div>
-                  <div className="discount">25% {t.off}</div>
-                  <span className="line-through">10000.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;5 {t.monthsPlan}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;2500 {t.discountApplied}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("Private 7500")}>{t.bookNow}</button>
-                </div>
-              </div>
-
-              <div className={`active-cards general ${selectedPlan === 'general' ? 'flex' : 'hidden'}`}>
-                <div className="card general-card">
-                  <div className="card-title basic rounded-t-lg">{t.basic}</div>
-                  <div className="price">600 EGP {t.perMonth}</div>
-                  <div className="discount">0% {t.off}</div>
-                  <span className="line-through">600.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.pricePerMonth}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;{t.noDiscount}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 600")}>{t.bookNow}</button>
-                </div>
-                <div className="card general-card">
-                  <div className="card-title advanced rounded-t-lg">{t.advanced}</div>
-                  <div className="price">1530 EGP {t.perMonth}</div>
-                  <div className="discount">15% {t.off}</div>
-                  <span className="line-through">1800.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;3 {t.monthsPlan}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;270 {t.discountApplied}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 1530")}>{t.bookNow}</button>
-                </div>
-                <div className="card general-card shadow-card">
-                  <div className="card-title special rounded-t-lg">{t.special}</div>
-                  <div className="price">2250 EGP {t.perMonth}</div>
-                  <div className="discount">25% {t.off}</div>
-                  <span className="line-through">3000.00</span>
-                  <span className="text-xs">{t.oldPrice}</span>
-                  <ul>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;5 {t.monthsPlan}</li>
-                    <li><span className="check">✓</span>&nbsp;&nbsp;750 {t.discountApplied}</li>
-                  </ul>
-                  <button className="book-now-btn" onClick={() => scrollToBookingForm("General 2250")}>{t.bookNow}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="content">
-          <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.studentProjects}</h1>
-          <p className="text-center text-gray-600 mb-8">
-            {t.studentsDesc}
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4">
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/B5COE6bLbgA" width="300" frameBorder="0" allowFullScreen></iframe>
-              <h2 className="text-xl font-bold text-orange-500 mt-4">AI & Data Analysis</h2>
-              <div className="flex items-center mt-2">
-                <img className="w-12 h-12 rounded-full" src="https://i.postimg.cc/Hnj1Bcmc/1-2.jpg" alt="Student"/>
-                <div className="ml-4 mx-4">
-                  <p className="text-gray-800 font-bold">Joyce</p>
-                  <p className="text-gray-600">15 years old</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mt-4">
-                AI project focused on data analysis, big data algorithms, and machine learning models to solve real-world problems.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/rgObQSfFWEw" width="300" frameBorder="0" allowFullScreen></iframe>
-              <h2 className="text-xl font-bold text-green-500 mt-4">Engineering Design</h2>
-              <div className="flex items-center mt-2">
-                <img className="w-12 h-12 rounded-full" src="https://i.postimg.cc/bJmjx07f/1-3.jpg" alt="Student"/>
-                <div className="ml-4 mx-4">
-                  <p className="text-gray-800 font-bold">Mariam</p>
-                  <p className="text-gray-600">10 years old</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mt-4">
-                Car design and simulation using 3D modeling, aerodynamics analysis, and competing against professional engineers.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-4">
-              <iframe className="w-full rounded-t-lg" height="200" src="https://www.youtube.com/embed/Uw5SFcFbaxI" width="300" frameBorder="0" allowFullScreen></iframe>
-              <h2 className="text-xl font-bold text-orange-500 mt-4">Advanced Arduino</h2>
-              <div className="flex items-center mt-2">
-                <img className="w-12 h-12 rounded-full" src="https://i.postimg.cc/PxXjvVFM/1-1.jpg" alt="Student"/>
-                <div className="ml-4 mx-4">
-                  <p className="text-gray-800 font-bold">Yustus</p>
-                  <p className="text-gray-600">11 years old</p>
-                </div>
-              </div>
-              <p className="text-gray-600 mt-4">
-                Electronics and microcontrollers, smart home automation, and building an electronic cane for the visually impaired.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="content flex my-10 flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">{t.branches}</h1>
-
-          <div className="relative w-11/12 max-w-md h-64 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-500 hover:scale-105">
-            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className="w-full h-full object-cover" />
-          </div>
-
-          <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-            <label htmlFor="locationSelect" className="text-lg font-medium text-gray-700">{t.chooseBranch}</label>
-            <select 
-              id="locationSelect" 
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
-              value={selectedLocation}
-              onChange={handleLocationChange}
-            >
-              <option value="select">{language === 'en' ? 'Select' : 'اختر'}</option>
-              <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
-              <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
-              <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
-              <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
-              <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
-              <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
-              <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
-            </select>
-          </div>
-          
-          <div className="mt-6 text-center text-lg font-medium text-gray-700 bg-white p-4 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105 max-w-md w-full">
-            {selectedLocation === "select" 
-              ? t.selectBranch 
-              : locationData[selectedLocation]}
-          </div>
-        </section>
-
-        <section className="content booking-section" id="booking" ref={bookingFormRef}>
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.bookYourCourse}</h2>
-          
-          <div className="booking-form-container max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-6">
-            {selectedPricePlan && (
-              <div className="selected-plan-banner mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
-                <p className="text-blue-800 font-medium">
-                  {t.bookingFor} <span className="font-bold">{selectedPricePlan}</span> {t.plan}
-                </p>
-              </div>
-            )}
-            
-            <form id="userForm" onSubmit={handleFormSubmit} className="space-y-6">
-              {/* Personal Info Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t.phoneNumber} *</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
-                    placeholder={language === 'en' ? "Phone number with country key" : "رقم الهاتف مع مفتاح الدولة"}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required 
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t.fullName} *</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    placeholder={language === 'en' ? "Your name" : "اسمك"}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required 
-                  />
-                </div>
-              </div>
-
-              {/* Age and Branch Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">{t.age} *</label>
-                  <select 
-                    id="age" 
-                    name="age" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="7-9">7-9</option>
-                    <option value="10-12">10-12</option>
-                    <option value="13-15">13-15</option>
-                    <option value="16-18">16-18</option>
-                    <option value="19-40">19-40</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">{t.branch} *</label>
-                  <select 
-                    id="branch" 
-                    name="branch" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">{t.selectBranchOption}</option>
-                    <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
-                    <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
-                    <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
-                    <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
-                    <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
-                    <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
-                    <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Previous Course Question */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourse}</label>
-                <div className="yes-no-buttons">
-                  <button 
-                    type="button" 
-                    className={continueCourse ? "active" : ""} 
-                    onClick={() => toggleCourseInput(true)}
-                  >
-                    {t.yes}
-                  </button>
-                  <button 
-                    type="button" 
-                    className={!continueCourse ? "active" : ""} 
-                    onClick={() => toggleCourseInput(false)}
-                  >
-                    {t.no}
-                  </button>
-                </div>
-              </div>
-
-              {/* Previous Course Name Dropdown - Now properly formatted as a dropdown */}
-              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
-                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
-                <select 
-                  id="course" 
-                  name="course" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Start from begining">{language === 'en' ? 'Start from beginning' : 'البدء من البداية'}</option>
-                  <option value="Pictoblox Basics">{language === 'en' ? 'Pictoblox Basics' : 'أساسيات بيكتوبلوكس'}</option>
-                  <option value="Pictoblox Advanced">{language === 'en' ? 'Pictoblox Advanced' : 'بيكتوبلوكس متقدم'}</option>  
-                  <option value="Pyhton Basics">{language === 'en' ? 'Python Basics' : 'أساسيات بايثون'}</option>
-                  <option value="AI with Python">{language === 'en' ? 'AI with Python' : 'الذكاء الاصطناعي مع بايثون'}</option>
-                  <option value="Machine Learning">{language === 'en' ? 'Machine Learning' : 'تعلم الآلة'}</option>
-                  <option value="Arduino Level 1">{language === 'en' ? 'Arduino Level 1' : 'أردوينو المستوى 1'}</option>
-                  <option value="Arduino level 2">{language === 'en' ? 'Arduino level 2' : 'أردوينو المستوى 2'}</option>
-                  <option value="Arduino Projects">{language === 'en' ? 'Arduino Projects' : 'مشاريع أردوينو'}</option>
-                  <option value="Web HTML">{language === 'en' ? 'Web HTML' : 'تطوير الويب HTML'}</option>
-                  <option value="Web CSS">{language === 'en' ? 'Web CSS' : 'تطوير الويب CSS'}</option>
-                  <option value="Web JavaScript">{language === 'en' ? 'Web JavaScript' : 'تطوير الويب JavaScript'}</option>
-                  <option value="Other">{language === 'en' ? 'Other' : 'أخرى'}</option>
-                </select>
-              </div>
-
-              {/* Course Plan */}
-              <div>
-                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">{t.coursePlan} *</label>
-                <select 
-                  id="course-Pric-sel" 
-                  name="course-Pric-sel" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">{t.selectPlan}</option>
-                  <option value="Private 2000">{language === 'en' ? 'Private Basic - 2000 EGP/month' : 'خاص أساسي - 2000 جنيه/شهر'}</option>
-                  <option value="Private 3400">{language === 'en' ? 'Private Advanced - 3400 EGP/month' : 'خاص متقدم - 3400 جنيه/شهر'}</option>
-                  <option value="Private 7500">{language === 'en' ? 'Private Special - 7500 EGP/month' : 'خاص مميز - 7500 جنيه/شهر'}</option>
-                  <option value="General 600">{language === 'en' ? 'General Basic - 600 EGP/month' : 'عام أساسي - 600 جنيه/شهر'}</option>
-                  <option value="General 1530">{language === 'en' ? 'General Advanced - 1530 EGP/month' : 'عام متقدم - 1530 جنيه/شهر'}</option>
-                  <option value="General 2250">{language === 'en' ? 'General Special - 2250 EGP/month' : 'عام مميز - 2250 جنيه/شهر'}</option>
-                </select>
-              </div>
-
-              {/* Submit Button */}
-              <div className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
-                >
-                  {t.submit}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/767px-WhatsApp.svg.png" alt="WhatsApp" />
-        </a>
-      </main>
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default Index;
