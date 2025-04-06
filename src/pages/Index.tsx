@@ -19,7 +19,6 @@ const Index: React.FC = () => {
   const bookingFormRef = useRef<HTMLDivElement>(null);
   const [language, setLanguage] = useState<"en" | "ar">("en");
   
-  // Arabic translations
   const translations = {
     en: {
       home: "Home",
@@ -81,7 +80,7 @@ const Index: React.FC = () => {
       startLearning: "ابدأ التعلم اليوم",
       coursesByAge: "الدورات حسب العمر",
       pricingPlans: "خطط الأسعار",
-      pricingDesc: "اختر الخطة المناسبة لك. نقدم خطط خاصة لطفل واحد وخطط عامة لمجموعة من 8-10 أطفال. اختر ما يناسب احتياجاتك.",
+      pricingDesc: "اختر الخطة المناسبة لك. نقدم خطط خاصة لطفل واحد وخ��ط عامة لمجموعة من 8-10 أطفال. اختر ما يناسب احتياجاتك.",
       general: "عام",
       private: "خاص",
       basic: "أساسي",
@@ -218,7 +217,6 @@ const Index: React.FC = () => {
   const toggleLanguage = () => {
     setLanguage(prev => prev === "en" ? "ar" : "en");
     
-    // Toggle active class on language icons
     const englishIcon = document.getElementById("english-icon");
     const arabicIcon = document.getElementById("arabic-icon");
     
@@ -227,18 +225,15 @@ const Index: React.FC = () => {
       arabicIcon.classList.toggle("active");
     }
     
-    // Set RTL/LTR direction on body
     document.body.dir = language === "en" ? "rtl" : "ltr";
   };
 
   const handleAgeChange = (age: string) => {
-    
     setActiveAge(age);
     renderCourses(age);
   };
 
   const togglePlans = (planType: string) => {
-    
     setSelectedPlan(planType);
     
     const generalCards = document.querySelector('.general');
@@ -254,12 +249,10 @@ const Index: React.FC = () => {
   };
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    
     setSelectedLocation(e.target.value);
   };
 
   const toggleFAQ = (header: HTMLElement) => {
-    
     const faq = header.parentElement;
     if (faq) {
       faq.classList.toggle('active');
@@ -271,7 +264,6 @@ const Index: React.FC = () => {
   };
 
   const renderCourses = (ageGroup: string) => {
-    
     const courseListContainer = document.getElementById('course-list');
     if (!courseListContainer || !coursesData[ageGroup as keyof typeof coursesData]) return;
     
@@ -303,7 +295,6 @@ const Index: React.FC = () => {
     if (bookingFormRef.current) {
       bookingFormRef.current.scrollIntoView({ behavior: 'smooth' });
       
-      
       const coursePriceSel = document.getElementById('course-Pric-sel') as HTMLSelectElement;
       if (coursePriceSel) {
         const options = Array.from(coursePriceSel.options);
@@ -325,7 +316,6 @@ const Index: React.FC = () => {
         extraCourseInput.classList.remove('active');
       }
     }
-    
     
     const yesNoButtons = document.querySelectorAll('.yes-no-buttons button');
     yesNoButtons.forEach((btn, index) => {
@@ -351,7 +341,6 @@ const Index: React.FC = () => {
     const previousCourse = previousCourseButton && previousCourseButton.textContent === (language === 'en' ? 'Yes' : 'نعم');
     const course = previousCourse ? formData.get('course') as string : null;
 
-    
     if (!name || !phone || !age || !branch || !plan) {
       toast.error(language === 'en' ? 'Please fill out all required fields.' : 'يرجى ملء جميع الحقول المطلوبة.');
       return;
@@ -681,7 +670,7 @@ const Index: React.FC = () => {
               <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
               <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
               <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أب�� قرقاص'}</option>
               <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
               <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
             </select>
@@ -793,7 +782,7 @@ const Index: React.FC = () => {
                     <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
                     <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
                     <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أبو قرقاص'}</option>
+                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أب�� قرقاص'}</option>
                     <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
                     <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
                   </select>
@@ -820,7 +809,7 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              <div id="extra-course-input" className={continueCourse ? 'active' : ''}>
+              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
                 <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
                 <select 
                   id="course" 
@@ -933,7 +922,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        {/* WhatsApp Float Button */}
         <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
           <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/767px-WhatsApp.svg.png" alt="WhatsApp" />
         </a>
