@@ -80,7 +80,7 @@ const Index: React.FC = () => {
       startLearning: "ابدأ التعلم اليوم",
       coursesByAge: "الدورات حسب العمر",
       pricingPlans: "خطط الأسعار",
-      pricingDesc: "اختر الخطة المناسبة لك. نقدم خطط خاصة لطفل واحد وخ��ط عامة لمجموعة من 8-10 أطفال. اختر ما يناسب احتياجاتك.",
+      pricingDesc: "اختر الخطة المناسبة لك. نقدم خطط خاصة لطفل واحد وخطط عامة لمجموعة من 8-10 أطفال. اختر ما يناسب احتياجاتك.",
       general: "عام",
       private: "خاص",
       basic: "أساسي",
@@ -398,7 +398,6 @@ const Index: React.FC = () => {
           </div>
         </nav>
 
-        
         <section className="hero" id="home">
           <div className="hero-container mx-auto px-5 py-8">
             <div className="hero-content">
@@ -414,7 +413,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        
         <section className="content" id="Ages">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.coursesByAge}</h2>
           
@@ -436,7 +434,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        
         <section className="content" id="courses">
           <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.courses}</h2>
           
@@ -485,7 +482,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        
         <section className="content" id="price">
           <h2 className="text-4xl font-bold text-center text-purple-900 mt-5 mb-1">{t.pricingPlans}</h2>
           <p className="text-center text-gray-700 mb-6">
@@ -508,9 +504,7 @@ const Index: React.FC = () => {
               </button>
             </div>
 
-            
             <div className="pricing-cards" id="pricing-cards">
-              
               <div className={`active-cards private ${selectedPlan === 'private' ? 'flex' : 'hidden'}`}>
                 <div className="card private-card">
                   <div className="card-title basic">{t.basic}</div>
@@ -550,7 +544,6 @@ const Index: React.FC = () => {
                 </div>
               </div>
 
-              
               <div className={`active-cards general ${selectedPlan === 'general' ? 'flex' : 'hidden'}`}>
                 <div className="card general-card">
                   <div className="card-title basic rounded-t-lg">{t.basic}</div>
@@ -593,7 +586,6 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        
         <section className="content">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.studentProjects}</h1>
           <p className="text-center text-gray-600 mb-8">
@@ -648,288 +640,8 @@ const Index: React.FC = () => {
           </div>
         </section>
 
-        
         <section className="content flex my-10 flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">{t.branches}</h1>
 
           <div className="relative w-11/12 max-w-md h-64 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-500 hover:scale-105">
-            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className="w-full h-full object-cover" />
-          </div>
-
-          <div className="mt-6 flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
-            <label htmlFor="locationSelect" className="text-lg font-medium text-gray-700">{t.chooseBranch}</label>
-            <select 
-              id="locationSelect" 
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease-in-out transform hover:scale-105"
-              value={selectedLocation}
-              onChange={handleLocationChange}
-            >
-              <option value="select">{language === 'en' ? 'Select' : 'اختر'}</option>
-              <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
-              <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
-              <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
-              <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
-              <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-              <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أب�� قرقاص'}</option>
-              <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
-              <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
-            </select>
-          </div>
-          
-          <div className="mt-6 text-center text-lg font-medium text-gray-700 bg-white p-4 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105 max-w-md w-full">
-            {selectedLocation === "select" 
-              ? t.selectBranch 
-              : locationData[selectedLocation]}
-          </div>
-        </section>
-
-        
-        <section className="content" id="images">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-2">{t.students}</h2>
-          
-          <div className="slider-container">
-            <div className="slider" ref={studentsSliderRef}>
-              <div className="slide">
-                <img src="https://i.postimg.cc/mkJ61hnY/ezgif-com-animated-gif-maker-8.gif" alt="3D Ping Pong" />
-              </div>
-              
-              <div className="slide">
-                <img src="https://i.postimg.cc/SsZPqg7t/ezgif-com-resize-1.gif" alt="AI Self Driving" />
-              </div>
-              
-              <div className="slide">
-                <img src="https://i.postimg.cc/pdH4BhLk/ezgif-com-resize-2.gif" alt="Weather Simulation" />
-              </div>
-              
-              <div className="slide">
-                <img src="https://i.postimg.cc/yxkbN0L6/ezgif-com-resize-3.gif" alt="Maze Solver" />
-              </div>
-              
-              <div className="slide">
-                <img src="https://i.postimg.cc/85kYq2W6/ezgif-com-resize-5.gif" alt="Digital Clock" />
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        <section className="content booking-section" id="booking" ref={bookingFormRef}>
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.bookYourCourse}</h2>
-          
-          <div className="booking-form-container max-w-2xl mx-auto bg-white rounded-lg shadow-xl p-6">
-            {selectedPricePlan && (
-              <div className="selected-plan-banner mb-6 p-3 bg-blue-50 border border-blue-200 rounded-md text-center">
-                <p className="text-blue-800 font-medium">
-                  {t.bookingFor} <span className="font-bold">{selectedPricePlan}</span> {t.plan}
-                </p>
-              </div>
-            )}
-            
-            <form id="userForm" onSubmit={handleFormSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t.phoneNumber} *</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
-                    placeholder={language === 'en' ? "Phone number with country key" : "رقم الهاتف مع مفتاح الدولة"}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required 
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t.fullName} *</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    placeholder={language === 'en' ? "Your name" : "اسمك"}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">{t.age} *</label>
-                  <select 
-                    id="age" 
-                    name="age" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="7-9">7-9</option>
-                    <option value="10-12">10-12</option>
-                    <option value="13-15">13-15</option>
-                    <option value="16-18">16-18</option>
-                    <option value="19-40">19-40</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="branch" className="block text-sm font-medium text-gray-700 mb-1">{t.branch} *</label>
-                  <select 
-                    id="branch" 
-                    name="branch" 
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">{t.selectBranchOption}</option>
-                    <option value="El minia">{language === 'en' ? 'El minia' : 'المنيا'}</option>
-                    <option value="new_El minia">{language === 'en' ? 'New minia' : 'المنيا الجديدة'}</option>
-                    <option value="smaluat">{language === 'en' ? 'Smaluat' : 'سمالوط'}</option>
-                    <option value="magagh">{language === 'en' ? 'Magagh' : 'مغاغة'}</option>
-                    <option value="bany_mazar">{language === 'en' ? 'Bani Mazar' : 'بني مزار'}</option>
-                    <option value="abo_gurags">{language === 'en' ? 'Abu Qurqas' : 'أب�� قرقاص'}</option>
-                    <option value="mallya">{language === 'en' ? 'Mallawi' : 'ملوي'}</option>
-                    <option value="online">{language === 'en' ? 'Online' : 'اونلاين'}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourse}</label>
-                <div className="yes-no-buttons">
-                  <button 
-                    type="button" 
-                    className={continueCourse ? "active" : ""} 
-                    onClick={() => toggleCourseInput(true)}
-                  >
-                    {t.yes}
-                  </button>
-                  <button 
-                    type="button" 
-                    className={!continueCourse ? "active" : ""} 
-                    onClick={() => toggleCourseInput(false)}
-                  >
-                    {t.no}
-                  </button>
-                </div>
-              </div>
-
-              <div id="extra-course-input" className={`${continueCourse ? 'active' : ''}`}>
-                <label htmlFor="course" className="block text-sm font-medium text-gray-700 mb-1">{t.previousCourseName}</label>
-                <select 
-                  id="course" 
-                  name="course" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Start from begining">{language === 'en' ? 'Start from beginning' : 'البدء من البداية'}</option>
-                  <option value="Pictoblox Basics">{language === 'en' ? 'Pictoblox Basics' : 'أساسيات بيكتوبلوكس'}</option>
-                  <option value="Pictoblox Advanced">{language === 'en' ? 'Pictoblox Advanced' : 'بيكتوبلوكس متقدم'}</option>  
-                  <option value="Pyhton Basics">{language === 'en' ? 'Python Basics' : 'أساسيات بايثون'}</option>
-                  <option value="AI with Python">{language === 'en' ? 'AI with Python' : 'الذكاء الاصطناعي مع بايثون'}</option>
-                  <option value="Machine Learning">{language === 'en' ? 'Machine Learning' : 'تعلم الآلة'}</option>
-                  <option value="Arduino Level 1">{language === 'en' ? 'Arduino Level 1' : 'أردوينو المستوى 1'}</option>
-                  <option value="Arduino level 2">{language === 'en' ? 'Arduino level 2' : 'أردوينو المستوى 2'}</option>
-                  <option value="Arduino Projects">{language === 'en' ? 'Arduino Projects' : 'مشاريع أردوينو'}</option>
-                  <option value="Web HTML">{language === 'en' ? 'Web HTML' : 'تطوير الويب HTML'}</option>
-                  <option value="Web CSS">{language === 'en' ? 'Web CSS' : 'تطوير الويب CSS'}</option>
-                  <option value="Web JavaScript">{language === 'en' ? 'Web JavaScript' : 'تطوير الويب JavaScript'}</option>
-                  <option value="Other">{language === 'en' ? 'Other' : 'أخرى'}</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="course-Pric-sel" className="block text-sm font-medium text-gray-700 mb-1">{t.coursePlan} *</label>
-                <select 
-                  id="course-Pric-sel" 
-                  name="course-Pric-sel" 
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">{t.selectPlan}</option>
-                  <option value="Private 2000">{language === 'en' ? 'Private Basic - 2000 EGP/month' : 'خاص أساسي - 2000 جنيه/شهر'}</option>
-                  <option value="Private 3400">{language === 'en' ? 'Private Advanced - 3400 EGP/month' : 'خاص متقدم - 3400 جنيه/شهر'}</option>
-                  <option value="Private 7500">{language === 'en' ? 'Private Special - 7500 EGP/month' : 'خاص مميز - 7500 جنيه/شهر'}</option>
-                  <option value="General 600">{language === 'en' ? 'General Basic - 600 EGP/month' : 'عام أساسي - 600 جنيه/شهر'}</option>
-                  <option value="General 1530">{language === 'en' ? 'General Advanced - 1530 EGP/month' : 'عام متقدم - 1530 جنيه/شهر'}</option>
-                  <option value="General 2250">{language === 'en' ? 'General Special - 2250 EGP/month' : 'عام مميز - 2250 جنيه/شهر'}</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition-colors"
-                >
-                  {t.submit}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </section>
-
-        <section className="content" id="faq">
-          <h2 className="text-4xl font-bold text-center text-purple-900 mb-8">{t.faq}</h2>
-          <div className="faq-container max-w-4xl mx-auto">
-            <div className="faq" data-color="rgba(255, 165, 0, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'orange'}}>▶</div>
-                {language === 'en' ? 'What age group are your courses designed for?' : 'ما هي الفئة العمرية التي صممت دوراتك لها؟'}
-              </div>
-              <div className="faq-content">{language === 'en' ? 'Our courses are tailored for children aged 7-17 years...' : 'دوراتنا مصممة للأطفال الذين تتراوح أعمارهم بين 7 و 17 عامًا...'}</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(255, 99, 71, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'red'}}>▶</div>
-                {language === 'en' ? 'When does the course start?' : 'متى تبدأ الدورة؟'}
-              </div>
-              <div className="faq-content">{language === 'en' ? 'After registration, we will contact you via WhatsApp once the group is formed.' : 'بعد التسجيل، سنتواصل معك عبر واتساب بمجرد تشكيل المجموعة.'}</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(60, 179, 113, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'darkgreen'}}>▶</div>
-                {language === 'en' ? 'How are the course schedules determined?' : 'كيف يتم تحديد جداول الدورة؟'}
-              </div>
-              <div className="faq-content">{language === 'en' ? 'Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.' : 'بمجرد تشكيل المجموعة، ننشئ مجموعة واتساب ونناقش الجدول الزمني الأكثر ملاءمة للجميع.'}</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(218, 165, 32, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'goldenrod'}}>▶</div>
-                {language === 'en' ? 'Is there a sibling discount?' : 'هل هناك خصم للأخوة؟'}
-              </div>
-              <div className="faq-content">{language === 'en' ? 'Yes, there is a 10% discount.' : 'نعم، هناك خصم 10٪.'}</div>
-            </div>
-            
-            <div className="faq" data-color="rgba(70, 130, 180, 0.7)">
-              <div 
-                className="faq-header" 
-                onClick={(e) => toggleFAQ(e.currentTarget)}
-              >
-                <div className="faq-icon" style={{background: 'steelblue'}}>▶</div>
-                {language === 'en' ? 'How do I know which course is right for my child?' : 'كيف أعرف أي دورة مناسبة لطفلي؟'}
-              </div>
-              <div className="faq-content">{language === 'en' ? 'We offer a free assessment session to determine the most suitable course based on your child's interests and abilities.' : 'نقدم جلسة تقييم مجانية لتحديد الدورة الأنسب بناءً على اهتمامات طفلك وقدراته.'}</div>
-            </div>
-          </div>
-        </section>
-
-        <a href="http://wa.me/+201204262410" className="whatsapp-float" target="_blank" rel="noopener noreferrer">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/767px-WhatsApp.svg.png" alt="WhatsApp" />
-        </a>
-      </main>
-      
-      <Footer />
-    </div>
-  );
-};
-
-export default Index;
+            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className
