@@ -644,4 +644,4 @@ const Index: React.FC = () => {
           <h1 className="text-4xl font-bold text-center text-purple-900 mb-6 mt-3">{t.branches}</h1>
 
           <div className="relative w-11/12 max-w-md h-64 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-lg transform transition-transform duration-500 hover:scale-105">
-            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of Egypt" className
+            <img id="mapImage" src="https://i.postimg.cc/4xCxsymT/loc.png" alt="Map of
