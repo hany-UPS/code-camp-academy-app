@@ -17,6 +17,16 @@ interface FAQSectionProps {
     faq4Answer: string;
     faq5Title: string;
     faq5Answer: string;
+    faq6Title: string;
+    faq6Answer: string;
+    faq7Title: string;
+    faq7Answer: string;
+    faq8Title: string;
+    faq8Answer: string;
+    faq9Title: string;
+    faq9Answer: string;
+    faq10Title: string;
+    faq10Answer: string;
   };
 }
 

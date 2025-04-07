@@ -1,5 +1,6 @@
 
 import React from "react";
+import { MessageCircle } from "lucide-react";
 
 const WhatsAppFloat: React.FC = () => {
   return (
@@ -9,7 +10,7 @@ const WhatsAppFloat: React.FC = () => {
       target="_blank" 
       rel="noopener noreferrer"
     >
-      <img src="https://i.postimg.cc/65JjvDfP/whatsapp-icon.png" alt="WhatsApp" />
+      <MessageCircle color="white" size={28} />
     </a>
   );
 };

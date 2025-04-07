@@ -4,9 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import Navigation from "@/components/home/Navigation";
 import Hero from "@/components/home/Hero";
 import AgeCoursesSection from "@/components/home/AgeCoursesSection";
 import CoursesSlider from "@/components/home/CoursesSlider";
@@ -17,6 +14,8 @@ import FAQSection from "@/components/home/FAQSection";
 import ContactSection from "@/components/home/ContactSection";
 import BookingForm from "@/components/home/BookingForm";
 import WhatsAppFloat from "@/components/home/WhatsAppFloat";
+import Navigation from "@/components/home/Navigation";
+import Footer from "@/components/layout/Footer";
 import "@/styles/home.css";
 
 const Index: React.FC = () => {
@@ -85,16 +84,26 @@ const Index: React.FC = () => {
       phone: "Phone",
       email: "Email",
       followUs: "Follow Us",
-      faq1Title: "What age groups do you teach?",
-      faq1Answer: "We offer courses for children aged 7 to 18, as well as specialized programs for adults aged 19-40.",
-      faq2Title: "How long are the courses?",
-      faq2Answer: "Our courses typically run for 1 to 5 months, depending on the level and program you select.",
-      faq3Title: "Do I need to have prior programming experience?",
-      faq3Answer: "No, we offer courses for complete beginners as well as more advanced students.",
-      faq4Title: "What equipment do I need for online courses?",
-      faq4Answer: "You'll need a computer with internet connection and a webcam. Specific software requirements will be provided before the course starts.",
-      faq5Title: "Are there any discounts available?",
-      faq5Answer: "Yes, we offer discounts for multi-month commitments. The longer the commitment, the higher the discount.",
+      faq1Title: "What age group are your courses designed for?",
+      faq1Answer: "Our courses are tailored for children aged 7-17 years...",
+      faq2Title: "When does the course start?",
+      faq2Answer: "After registration, we will contact you via WhatsApp once the group is formed.",
+      faq3Title: "How are the course schedules determined?",
+      faq3Answer: "Once the group is formed, we create a WhatsApp group and discuss the most convenient schedule for everyone.",
+      faq4Title: "Is there a sibling discount?",
+      faq4Answer: "Yes, there is a 10% discount.",
+      faq5Title: "Does the child choose the specialization, or does the academy decide?",
+      faq5Answer: "The child is placed in a suitable specialization based on our expertise. Children also go through multiple specializations to discover their strengths.",
+      faq6Title: "Are there any required tools?",
+      faq6Answer: "Tools are only required for robotics courses, including electronics, batteries, motors, and more.",
+      faq7Title: "Does the child need a laptop?",
+      faq7Answer: "No, a modern smartphone is sufficient and does not affect learning. We use programs that work on both laptops and phones. However, an advanced level may require a laptop.",
+      faq8Title: "What are the payment methods?",
+      faq8Answer: "Payment is made in advance. If you choose the 5-month advanced pricing plan, payment is split into two installments.",
+      faq9Title: "What is Scratch programming, and why is it beneficial?",
+      faq9Answer: "Scratch is a block-based programming language that helps children learn logical thinking...",
+      faq10Title: "Is Python suitable for children, and what do they learn?",
+      faq10Answer: "Python helps children develop logical thinking and problem-solving skills...",
       project1Title: "AI & Data Analysis",
       project1Student: "Joyce",
       project1Age: "15 years old",
@@ -165,14 +174,24 @@ const Index: React.FC = () => {
       followUs: "تابعنا",
       faq1Title: "ما هي الفئات العمرية التي تقومون بتدريسها؟",
       faq1Answer: "نقدم دورات للأطفال من سن 7 إلى 18 عامًا، بالإضافة إلى برامج متخصصة للبالغين من سن 19-40.",
-      faq2Title: "كم هي مدة الدورات؟",
-      faq2Answer: "تستمر دوراتنا عادة من شهر إلى 5 أشهر، اعتمادًا على المستوى والبرنامج الذي تختاره.",
-      faq3Title: "هل أحتاج إلى خبرة برمجية مسبقة؟",
-      faq3Answer: "لا، نحن نقدم دورات للمبتدئين تمامًا وكذلك للطلاب الأكثر تقدمًا.",
-      faq4Title: "ما هي المعدات التي أحتاجها للدورات عبر الإنترنت؟",
-      faq4Answer: "ستحتاج إلى جهاز كمبيوتر متصل بالإنترنت وكاميرا ويب. سيتم توفير متطلبات البرامج المحددة قبل بدء الدورة.",
-      faq5Title: "هل هناك أي خصومات متاحة؟",
-      faq5Answer: "نعم، نقدم خصومات للالتزامات متعددة الأشهر. كلما طال الالتزام، زاد الخصم.",
+      faq2Title: "متى تبدأ الدورة؟",
+      faq2Answer: "بعد التسجيل، سنتصل بك عبر الواتساب بمجرد تشكيل المجموعة.",
+      faq3Title: "كيف يتم تحديد جداول الدورات؟",
+      faq3Answer: "بمجرد تكوين المجموعة، ننشئ مجموعة واتساب ونناقش الجدول الأكثر ملاءمة للجميع.",
+      faq4Title: "هل هناك خصم للأخوة؟",
+      faq4Answer: "نعم، هناك خصم بنسبة 10٪.",
+      faq5Title: "هل يختار الطفل التخصص أم تقرر الأكاديمية؟",
+      faq5Answer: "يتم وضع الطفل في تخصص مناسب بناءً على خبرتنا. يمر الأطفال أيضًا بتخصصات متعددة لاكتشاف نقاط قوتهم.",
+      faq6Title: "هل هناك أي أدوات مطلوبة؟",
+      faq6Answer: "الأدوات مطلوبة فقط لدورات الروبوتات، بما في ذلك الإلكترونيات والبطاريات والمحركات وغيرها.",
+      faq7Title: "هل يحتاج الطفل إلى كمبيوتر محمول؟",
+      faq7Answer: "لا، الهاتف الذكي الحديث كافٍ ولا يؤثر على التعلم. نستخدم برامج تعمل على أجهزة الكمبيوتر المحمولة والهواتف. ومع ذلك، قد يتطلب المستوى المتقدم كمبيوتر محمول.",
+      faq8Title: "ما هي طرق الدفع؟",
+      faq8Answer: "يتم الدفع مقدمًا. إذا اخترت خطة التسعير المتقدمة لمدة 5 أشهر، يتم تقسيم الدفع إلى قسطين.",
+      faq9Title: "ما هي برمجة سكراتش، ولماذا هي مفيدة؟",
+      faq9Answer: "سكراتش هي لغة برمجة تستند إلى الكتل تساعد الأطفال على تعلم التفكير المنطقي...",
+      faq10Title: "هل بايثون مناسبة للأطفال، وماذا يتعلمون؟",
+      faq10Answer: "تساعد بايثون الأطفال على تطوير التفكير المنطقي ومهارات حل المشكلات...",
       project1Title: "الذكاء الاصطناعي وتحليل البيانات",
       project1Student: "جويس",
       project1Age: "15 سنة",
@@ -376,8 +395,6 @@ const Index: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ direction: language === 'ar' ? 'rtl' : 'ltr' }}>
-      <Header />
-      
       <main className="flex-1">
         <Navigation 
           language={language}
