@@ -40,3 +40,29 @@ export interface StudentRanking {
     email: string | null;
   };
 }
+
+// Add helper functions for rankings and student progress
+export async function createInitialRanking(userId: string) {
+  try {
+    const { error } = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/student_rankings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik',
+        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+      },
+      body: JSON.stringify({
+        student_id: userId,
+        total_points: 0,
+        sessions_completed: 0,
+        quizzes_completed: 0
+      })
+    }).then(res => res.json());
+
+    if (error) {
+      console.error("Error creating initial ranking:", error);
+    }
+  } catch (err) {
+    console.error("Error in createInitialRanking:", err);
+  }
+}

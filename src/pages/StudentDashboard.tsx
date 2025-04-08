@@ -10,6 +10,8 @@ import Leaderboard from "@/components/rankings/Leaderboard";
 import StudentRankCard from "@/components/rankings/StudentRankCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { createInitialRanking } from "@/types/supabase-extension";
+import { StudentProgressService } from "@/services/StudentProgressService";
 
 interface Course {
   id: string;
@@ -66,6 +68,8 @@ const StudentDashboard: React.FC = () => {
       
       try {
         setLoading(true);
+        
+        await initializeStudentRanking(user.id);
         
         const { data: assignments, error: assignmentsError } = await supabase
           .from("course_assignments")
@@ -233,6 +237,40 @@ const StudentDashboard: React.FC = () => {
     
     fetchStudentData();
   }, [user, isAuthenticated, navigate]);
+  
+  const initializeStudentRanking = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("student_rankings")
+        .select("student_id")
+        .eq("student_id", userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking student ranking:", error);
+        return;
+      }
+      
+      if (!data) {
+        const { error: insertError } = await supabase
+          .from("student_rankings")
+          .insert({
+            student_id: userId,
+            total_points: 0,
+            sessions_completed: 0,
+            quizzes_completed: 0
+          });
+        
+        if (insertError) {
+          console.error("Error creating initial ranking:", insertError);
+        } else {
+          console.log("Created initial ranking for student:", userId);
+        }
+      }
+    } catch (err) {
+      console.error("Error in initializeStudentRanking:", err);
+    }
+  };
   
   if (loading) {
     return (
