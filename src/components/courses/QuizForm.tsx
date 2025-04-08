@@ -87,20 +87,26 @@ const QuizForm: React.FC<QuizFormProps> = ({
     try {
       setSubmitting(true);
       
-      // Insert the quiz
-      const { data: quiz, error: quizError } = await supabase
-        .from("quizzes")
-        .insert({
+      // Insert the quiz directly using fetch to avoid type issues
+      const response = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quizzes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik',
+          'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`
+        },
+        body: JSON.stringify({
           session_id: sessionId,
           title: data.title,
           description: data.description || null
         })
-        .select("id")
-        .single();
-        
-      if (quizError || !quiz) {
-        throw new Error(quizError?.message || "Failed to create quiz");
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create quiz');
       }
+      
+      const quiz = await response.json();
       
       // Format and insert the questions
       const formattedQuestions = data.questions.map((question, index) => ({
@@ -113,12 +119,19 @@ const QuizForm: React.FC<QuizFormProps> = ({
         points: 1 // Default points per question
       }));
       
-      const { error: questionsError } = await supabase
-        .from("quiz_questions")
-        .insert(formattedQuestions);
-        
-      if (questionsError) {
-        throw new Error(questionsError.message);
+      // Insert questions using fetch
+      const questionsResponse = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quiz_questions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik',
+          'Authorization': `Bearer ${supabase.auth.getSession().then(res => res.data.session?.access_token)}`
+        },
+        body: JSON.stringify(formattedQuestions)
+      });
+      
+      if (!questionsResponse.ok) {
+        throw new Error('Failed to create quiz questions');
       }
       
       toast({

@@ -12,8 +12,9 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
-import { Edit, Trash2, Youtube, MoveUp, MoveDown, Plus } from "lucide-react";
+import { Edit, Trash2, Youtube, MoveUp, MoveDown, Plus, BookOpen } from "lucide-react";
 import AddSessionForm from "./AddSessionForm";
+import QuizForm from "./QuizForm";
 
 interface Session {
   id: string;
@@ -32,12 +33,14 @@ interface Course {
 interface SessionsManagerProps {
   course: Course;
   onClose: () => void;
+  onCreateQuiz?: (sessionId: string, sessionTitle: string) => void;
 }
 
-const SessionsManager: React.FC<SessionsManagerProps> = ({ course, onClose }) => {
+const SessionsManager: React.FC<SessionsManagerProps> = ({ course, onClose, onCreateQuiz }) => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddSession, setShowAddSession] = useState(false);
+  const [selectedSessionForQuiz, setSelectedSessionForQuiz] = useState<{id: string, title: string} | null>(null);
   
   const fetchSessions = async () => {
     try {
@@ -183,6 +186,14 @@ const SessionsManager: React.FC<SessionsManagerProps> = ({ course, onClose }) =>
       });
     }
   };
+
+  const handleCreateQuiz = (sessionId: string, sessionTitle: string) => {
+    if (onCreateQuiz) {
+      onCreateQuiz(sessionId, sessionTitle);
+    } else {
+      setSelectedSessionForQuiz({ id: sessionId, title: sessionTitle });
+    }
+  };
   
   const formatVideoUrl = (url: string) => {
     // Extract video ID for display
@@ -301,18 +312,48 @@ const SessionsManager: React.FC<SessionsManagerProps> = ({ course, onClose }) =>
                   />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => handleDeleteSession(session.id)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
+                  <div className="flex justify-end gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center"
+                      onClick={() => handleCreateQuiz(session.id, session.title)}
+                    >
+                      <BookOpen className="h-4 w-4 mr-1 text-purple-500" />
+                      <span className="text-xs">Add Quiz</span>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => handleDeleteSession(session.id)}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+      )}
+
+      {selectedSessionForQuiz && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="max-w-3xl w-full my-8">
+            <QuizForm
+              sessionId={selectedSessionForQuiz.id}
+              sessionTitle={selectedSessionForQuiz.title}
+              onClose={() => setSelectedSessionForQuiz(null)}
+              onSuccess={() => {
+                setSelectedSessionForQuiz(null);
+                toast({
+                  title: "Quiz created",
+                  description: "The quiz has been created successfully"
+                });
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

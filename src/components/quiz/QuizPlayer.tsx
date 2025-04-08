@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Card, 
@@ -13,21 +11,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Award, Check, HelpCircle, X } from "lucide-react";
+import { QuizQuestion } from "@/types/supabase-extension";
 
 interface QuizPlayerProps {
   quizId: string;
   onComplete: (score: number) => void;
   onClose: () => void;
-}
-
-interface QuizQuestion {
-  id: string;
-  question_text: string;
-  question_type: 'multiple_choice' | 'true_false';
-  options: string[] | null;
-  correct_answer: string;
-  points: number;
-  sequence_order: number;
 }
 
 interface Quiz {
@@ -55,44 +44,51 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
         
         // Check if quiz has already been completed
         if (user) {
-          const { data: existingSubmission } = await supabase
-            .from("quiz_submissions")
-            .select("id, score")
-            .eq("quiz_id", quizId)
-            .eq("student_id", user.id)
-            .maybeSingle();
-            
-          if (existingSubmission) {
-            setErrorMessage(`You've already completed this quiz with a score of ${existingSubmission.score} points.`);
+          const response = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quiz_submissions?quiz_id=eq.${quizId}&student_id=eq.${user.id}`, {
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik'
+            }
+          });
+          
+          const existingSubmission = await response.json();
+          if (existingSubmission && existingSubmission.length > 0) {
+            setErrorMessage(`You've already completed this quiz with a score of ${existingSubmission[0].score} points.`);
             setLoading(false);
             return;
           }
         }
         
         // Fetch quiz details
-        const { data: quizData, error: quizError } = await supabase
-          .from("quizzes")
-          .select("*")
-          .eq("id", quizId)
-          .single();
-          
-        if (quizError || !quizData) {
-          throw new Error(quizError?.message || "Failed to fetch quiz");
+        const quizResponse = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quizzes?id=eq.${quizId}&select=*`, {
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik'
+          }
+        });
+        
+        if (!quizResponse.ok) {
+          throw new Error("Failed to fetch quiz");
+        }
+        
+        const quizData = await quizResponse.json();
+        if (!quizData || quizData.length === 0) {
+          throw new Error("Quiz not found");
         }
         
         // Fetch quiz questions
-        const { data: questionsData, error: questionsError } = await supabase
-          .from("quiz_questions")
-          .select("*")
-          .eq("quiz_id", quizId)
-          .order("sequence_order", { ascending: true });
-          
-        if (questionsError || !questionsData) {
-          throw new Error(questionsError?.message || "Failed to fetch quiz questions");
+        const questionsResponse = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quiz_questions?quiz_id=eq.${quizId}&order=sequence_order.asc`, {
+          headers: {
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik'
+          }
+        });
+        
+        if (!questionsResponse.ok) {
+          throw new Error("Failed to fetch quiz questions");
         }
         
+        const questionsData = await questionsResponse.json();
+        
         setQuiz({
-          ...quizData,
+          ...quizData[0],
           questions: questionsData
         });
         
@@ -142,13 +138,23 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
     
     try {
       // Save quiz submission
-      await supabase
-        .from("quiz_submissions")
-        .insert({
+      const response = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/quiz_submissions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZveGt1eXR2aGd4ZWZqbHh4dHhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3ODAyMjAsImV4cCI6MjA1OTM1NjIyMH0.MchoRnh0PCIEX6ce72XnoJjJMmVnZ6H-neQ2t78O6Ik',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
           quiz_id: quizId,
           student_id: user.id,
           score
-        });
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to save quiz submission");
+      }
       
       toast({
         title: "Quiz completed!",
