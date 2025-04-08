@@ -41,7 +41,7 @@ export interface StudentRanking {
   };
 }
 
-// Add helper functions for rankings and student progress
+// Helper function for creating initial ranking
 export async function createInitialRanking(userId: string) {
   try {
     const { error } = await fetch(`https://voxkuytvhgxefjlxxtxk.supabase.co/rest/v1/student_rankings`, {

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -7,8 +8,10 @@ import Footer from "@/components/layout/Footer";
 import VideoPlayer from "@/components/ui/VideoPlayer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Lock, CheckCircle, Youtube, EyeOff } from "lucide-react";
+import { ChevronLeft, ChevronRight, Lock, CheckCircle, Youtube, EyeOff, PlayCircle, BarChart3 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import QuizPlayer from "@/components/quiz/QuizPlayer";
+import { StudentProgressService } from "@/services/StudentProgressService";
 
 interface Session {
   id: string;
@@ -27,6 +30,12 @@ interface Course {
   sessions: Session[];
 }
 
+interface Quiz {
+  id: string;
+  title: string;
+  description: string | null;
+}
+
 const CourseView: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user, isAuthenticated } = useAuth();
@@ -38,6 +47,10 @@ const CourseView: React.FC = () => {
   const [completedSessions, setCompletedSessions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleSessions, setVisibleSessions] = useState<Session[]>([]);
+  const [activeTab, setActiveTab] = useState<"video" | "quizzes">("video");
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [activeQuizId, setActiveQuizId] = useState<string | null>(null);
+  const [completedQuizzes, setCompletedQuizzes] = useState<string[]>([]);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -117,17 +130,12 @@ const CourseView: React.FC = () => {
         }
         
         // If student, fetch completed sessions
-        if (user && user.role === "student") {
-          const { data: progressData, error: progressError } = await supabase
-            .from("session_progress")
-            .select("session_id")
-            .eq("student_id", user.id);
-            
-          if (progressError) {
-            console.error("Error fetching session progress:", progressError);
-          } else if (progressData) {
-            setCompletedSessions(progressData.map(p => p.session_id));
-          }
+        if (user && user.id) {
+          const completedSessionIds = await StudentProgressService.getCompletedSessions(user.id);
+          setCompletedSessions(completedSessionIds);
+          
+          const completedQuizIds = await StudentProgressService.getCompletedQuizzes(user.id);
+          setCompletedQuizzes(completedQuizIds);
         }
         
         setLoading(false);
@@ -145,9 +153,27 @@ const CourseView: React.FC = () => {
     fetchCourseData();
   }, [courseId, isAuthenticated, navigate, user]);
   
+  useEffect(() => {
+    if (activeSession && activeSession.id) {
+      fetchQuizzesForSession(activeSession.id);
+    }
+  }, [activeSession]);
+  
+  const fetchQuizzesForSession = async (sessionId: string) => {
+    try {
+      const quizData = await StudentProgressService.getQuizzesForSession(sessionId);
+      setQuizzes(quizData);
+    } catch (error) {
+      console.error("Error fetching quizzes:", error);
+      setQuizzes([]);
+    }
+  };
+  
   const handleSessionClick = (session: Session, index: number) => {
     setActiveSession(session);
     setActiveSessionIndex(index);
+    setActiveTab("video");
+    setActiveQuizId(null);
   };
   
   const handleNextSession = () => {
@@ -155,6 +181,8 @@ const CourseView: React.FC = () => {
       const nextIndex = activeSessionIndex + 1;
       setActiveSessionIndex(nextIndex);
       setActiveSession(visibleSessions[nextIndex]);
+      setActiveTab("video");
+      setActiveQuizId(null);
     }
   };
   
@@ -163,46 +191,47 @@ const CourseView: React.FC = () => {
       const prevIndex = activeSessionIndex - 1;
       setActiveSessionIndex(prevIndex);
       setActiveSession(visibleSessions[prevIndex]);
+      setActiveTab("video");
+      setActiveQuizId(null);
     }
   };
   
   const handleSessionComplete = async (sessionId: string) => {
     if (!user) return;
     
-    if (!completedSessions.includes(sessionId)) {
-      try {
-        // Record session completion in the database
-        const { error } = await supabase
-          .from("session_progress")
-          .insert({
-            student_id: user.id,
-            session_id: sessionId
-          });
-          
-        if (error) {
-          console.error("Error recording session progress:", error);
-          toast({
-            title: "Error",
-            description: "Failed to save your progress",
-            variant: "destructive",
-          });
-          return;
-        }
-        
+    try {
+      const success = await StudentProgressService.markSessionCompleted(sessionId, user.id);
+      
+      if (success && !completedSessions.includes(sessionId)) {
         setCompletedSessions([...completedSessions, sessionId]);
-        
-        toast({
-          title: "Progress Saved!",
-          description: "Your course progress has been updated.",
-        });
-      } catch (error) {
-        console.error("Error in handleSessionComplete:", error);
       }
+    } catch (error) {
+      console.error("Error in handleSessionComplete:", error);
+    }
+  };
+  
+  const handleQuizComplete = async (score: number) => {
+    if (!user || !activeQuizId) return;
+    
+    try {
+      const success = await StudentProgressService.submitQuizResult(activeQuizId, user.id, score);
+      
+      if (success && !completedQuizzes.includes(activeQuizId)) {
+        setCompletedQuizzes([...completedQuizzes, activeQuizId]);
+      }
+      
+      setActiveQuizId(null);
+    } catch (error) {
+      console.error("Error completing quiz:", error);
     }
   };
   
   const isSessionCompleted = (sessionId: string) => {
     return completedSessions.includes(sessionId);
+  };
+  
+  const isQuizCompleted = (quizId: string) => {
+    return completedQuizzes.includes(quizId);
   };
   
   const renderYouTubeLink = () => {
@@ -311,18 +340,98 @@ const CourseView: React.FC = () => {
           <div className="lg:col-span-2">
             {activeSession && (
               <>
-                <VideoPlayer 
-                  videoUrl={activeSession.video_url}
-                  sessionId={activeSession.id}
-                  onComplete={handleSessionComplete}
-                  isCompleted={isSessionCompleted(activeSession.id)}
-                />
-                
-                <div className="mt-6">
-                  <h2 className="text-2xl font-bold mb-3">{activeSession.title}</h2>
-                  <p className="text-gray-600 mb-4">{activeSession.description}</p>
-                  {renderYouTubeLink()}
-                </div>
+                <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "video" | "quizzes")} className="mb-6">
+                  <TabsList>
+                    <TabsTrigger value="video" className="flex items-center gap-1">
+                      <PlayCircle className="h-4 w-4" />
+                      Video Lesson
+                    </TabsTrigger>
+                    <TabsTrigger value="quizzes" className="flex items-center gap-1">
+                      <BarChart3 className="h-4 w-4" />
+                      Quizzes {quizzes.length > 0 ? `(${quizzes.length})` : ''}
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="video" className="mt-4">
+                    {activeQuizId ? (
+                      <QuizPlayer 
+                        quizId={activeQuizId}
+                        onComplete={handleQuizComplete}
+                        onClose={() => setActiveQuizId(null)}
+                      />
+                    ) : (
+                      <>
+                        <VideoPlayer 
+                          videoUrl={activeSession.video_url}
+                          sessionId={activeSession.id}
+                          onComplete={handleSessionComplete}
+                          isCompleted={isSessionCompleted(activeSession.id)}
+                        />
+                        
+                        <div className="mt-6">
+                          <h2 className="text-2xl font-bold mb-3">{activeSession.title}</h2>
+                          <p className="text-gray-600 mb-4">{activeSession.description}</p>
+                          {renderYouTubeLink()}
+                        </div>
+                      </>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="quizzes" className="mt-4">
+                    {activeQuizId ? (
+                      <QuizPlayer 
+                        quizId={activeQuizId}
+                        onComplete={handleQuizComplete}
+                        onClose={() => setActiveQuizId(null)}
+                      />
+                    ) : (
+                      <div className="bg-white rounded-lg shadow-md p-6">
+                        <h2 className="text-xl font-bold mb-4">Session Quizzes</h2>
+                        
+                        {quizzes.length > 0 ? (
+                          <div className="space-y-4">
+                            {quizzes.map(quiz => (
+                              <div 
+                                key={quiz.id}
+                                className="border rounded-lg p-4 hover:border-purple-300 transition-colors"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <h3 className="font-medium text-lg">{quiz.title}</h3>
+                                    {quiz.description && (
+                                      <p className="text-gray-600 text-sm mt-1">{quiz.description}</p>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    {isQuizCompleted(quiz.id) ? (
+                                      <div className="flex items-center text-green-600">
+                                        <CheckCircle className="h-5 w-5 mr-1" />
+                                        <span>Completed</span>
+                                      </div>
+                                    ) : (
+                                      <Button
+                                        onClick={() => setActiveQuizId(quiz.id)}
+                                        variant="outline"
+                                        className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                                      >
+                                        Start Quiz
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No quizzes available for this session.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
                 
                 <div className="mt-6 flex justify-between">
                   <Button
