@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { 
@@ -12,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Award, Check, HelpCircle, X } from "lucide-react";
 import { QuizQuestion } from "@/types/supabase-extension";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizPlayerProps {
   quizId: string;
