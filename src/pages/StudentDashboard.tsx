@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -7,6 +6,10 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import CourseCard from "@/components/courses/CourseCard";
 import { toast } from "@/hooks/use-toast";
+import Leaderboard from "@/components/rankings/Leaderboard";
+import StudentRankCard from "@/components/rankings/StudentRankCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Course {
   id: string;
@@ -30,11 +33,22 @@ interface Session {
   description: string | null;
 }
 
+interface StudentRank {
+  student_id: string;
+  name: string | null;
+  total_points: number;
+  sessions_completed: number;
+  quizzes_completed: number;
+  rank: number;
+}
+
 const StudentDashboard: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [assignedCourses, setAssignedCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [topStudents, setTopStudents] = useState<StudentRank[]>([]);
+  const [currentStudentRank, setCurrentStudentRank] = useState<StudentRank | null>(null);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -47,13 +61,12 @@ const StudentDashboard: React.FC = () => {
       return;
     }
     
-    const fetchStudentCourses = async () => {
+    const fetchStudentData = async () => {
       if (!user) return;
       
       try {
         setLoading(true);
         
-        // Get the course assignments for this student
         const { data: assignments, error: assignmentsError } = await supabase
           .from("course_assignments")
           .select("course_id")
@@ -78,7 +91,6 @@ const StudentDashboard: React.FC = () => {
         
         const courseIds = assignments.map(a => a.course_id);
         
-        // Get course details
         const { data: coursesData, error: coursesError } = await supabase
           .from("courses")
           .select("*")
@@ -95,7 +107,6 @@ const StudentDashboard: React.FC = () => {
           return;
         }
         
-        // Get all sessions for these courses
         const { data: sessionsData, error: sessionsError } = await supabase
           .from("sessions")
           .select("*")
@@ -105,7 +116,6 @@ const StudentDashboard: React.FC = () => {
           console.error("Error fetching sessions:", sessionsError);
         }
         
-        // Get student progress for completed sessions
         const { data: progressData, error: progressError } = await supabase
           .from("session_progress")
           .select("session_id")
@@ -115,23 +125,19 @@ const StudentDashboard: React.FC = () => {
           console.error("Error fetching progress:", progressError);
         }
         
-        // Group sessions by course
         const sessionsByCourse: Record<string, Session[]> = {};
         sessionsData?.forEach(session => {
           if (!sessionsByCourse[session.course_id]) {
             sessionsByCourse[session.course_id] = [];
           }
-          // Make sure each session has the is_active property
           sessionsByCourse[session.course_id].push({
             ...session,
             is_active: session.is_active !== undefined ? session.is_active : true
           });
         });
         
-        // Create completed sessions set for easy lookup
         const completedSessionIds = new Set(progressData?.map(p => p.session_id) || []);
         
-        // Map course data with progress
         const coursesWithProgress = coursesData?.map(course => {
           const sessions = sessionsByCourse[course.id] || [];
           const activeSessions = sessions.filter(s => s.is_active);
@@ -151,19 +157,81 @@ const StudentDashboard: React.FC = () => {
         }) || [];
         
         setAssignedCourses(coursesWithProgress);
+        
+        const { data: rankingsData, error: rankingsError } = await supabase
+          .from("student_rankings")
+          .select(`
+            student_id,
+            total_points,
+            sessions_completed,
+            quizzes_completed,
+            profiles:student_id (name)
+          `)
+          .order("total_points", { ascending: false })
+          .limit(10);
+          
+        if (rankingsError) {
+          console.error("Error fetching rankings:", rankingsError);
+        } else if (rankingsData) {
+          const formattedRankings: StudentRank[] = rankingsData.map((ranking, index) => ({
+            student_id: ranking.student_id,
+            name: ranking.profiles?.name || null,
+            total_points: ranking.total_points,
+            sessions_completed: ranking.sessions_completed,
+            quizzes_completed: ranking.quizzes_completed,
+            rank: index + 1
+          }));
+          
+          setTopStudents(formattedRankings);
+          
+          const currentStudent = formattedRankings.find(s => s.student_id === user.id);
+          
+          if (currentStudent) {
+            setCurrentStudentRank(currentStudent);
+          } else {
+            const { data: userRankData } = await supabase
+              .from("student_rankings")
+              .select(`
+                student_id,
+                total_points, 
+                sessions_completed,
+                quizzes_completed,
+                profiles:student_id (name)
+              `)
+              .eq("student_id", user.id)
+              .single();
+              
+            if (userRankData) {
+              const { count: higherRankedCount } = await supabase
+                .from("student_rankings")
+                .select("*", { count: "exact", head: false })
+                .gt("total_points", userRankData.total_points);
+                
+              setCurrentStudentRank({
+                student_id: userRankData.student_id,
+                name: userRankData.profiles?.name || null,
+                total_points: userRankData.total_points,
+                sessions_completed: userRankData.sessions_completed,
+                quizzes_completed: userRankData.quizzes_completed,
+                rank: (higherRankedCount || 0) + 1
+              });
+            }
+          }
+        }
+        
         setLoading(false);
       } catch (error) {
         console.error("Error fetching student data:", error);
         toast({
           title: "Error",
-          description: "Failed to load your courses",
+          description: "Failed to load your data",
           variant: "destructive",
         });
         setLoading(false);
       }
     };
     
-    fetchStudentCourses();
+    fetchStudentData();
   }, [user, isAuthenticated, navigate]);
   
   if (loading) {
@@ -171,7 +239,7 @@ const StudentDashboard: React.FC = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 flex items-center justify-center">
-          <p>Loading your courses...</p>
+          <p>Loading your dashboard...</p>
         </main>
         <Footer />
       </div>
@@ -183,35 +251,109 @@ const StudentDashboard: React.FC = () => {
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Student Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6">My Learning Dashboard</h1>
         
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-semibold">My Courses</h2>
-          </div>
+        <Tabs defaultValue="courses" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="courses">My Courses</TabsTrigger>
+            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+          </TabsList>
           
-          {assignedCourses.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {assignedCourses.map((course) => (
-                <CourseCard 
-                  key={course.id} 
-                  course={course}
-                  progress={course.progress}
-                  activeSessions={course.activeSessions}
+          <TabsContent value="courses">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+              <div className="lg:col-span-1">
+                {currentStudentRank && (
+                  <StudentRankCard
+                    rank={currentStudentRank.rank}
+                    totalPoints={currentStudentRank.total_points}
+                    sessionsCompleted={currentStudentRank.sessions_completed}
+                    quizzesCompleted={currentStudentRank.quizzes_completed}
+                  />
+                )}
+              </div>
+              
+              <div className="lg:col-span-3">
+                {assignedCourses.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {assignedCourses.map((course) => (
+                      <CourseCard 
+                        key={course.id} 
+                        course={course}
+                        progress={course.progress}
+                        activeSessions={course.activeSessions}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-8 text-center">
+                    <h3 className="text-xl font-medium text-gray-700 mb-2">
+                      No courses assigned yet
+                    </h3>
+                    <p className="text-gray-500">
+                      Your instructor will assign courses to you soon.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="leaderboard">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+              <div className="lg:col-span-1">
+                <Card className="bg-purple-50 border-0 shadow">
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-purple-900 mb-4">Ranking System</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-purple-800">How to earn points:</h4>
+                        <ul className="mt-2 text-sm space-y-2">
+                          <li className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                            <span>10 points for each completed session</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                            <span>1 point for each correct quiz answer</span>
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-semibold text-purple-800">Reaching top ranks:</h4>
+                        <ul className="mt-2 text-sm space-y-2">
+                          <li className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                            <span>Complete all sessions in your courses</span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                            <span>Take quizzes and answer questions correctly</span>
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      {currentStudentRank && (
+                        <div className="mt-6 pt-4 border-t border-purple-200">
+                          <p className="text-center text-purple-800 font-semibold">Your Current Rank</p>
+                          <p className="text-center text-3xl font-bold text-purple-900">#{currentStudentRank.rank}</p>
+                          <p className="text-center text-purple-700 mt-1">{currentStudentRank.total_points} Points</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="lg:col-span-3">
+                <Leaderboard 
+                  rankings={topStudents} 
+                  currentUserId={user?.id} 
                 />
-              ))}
+              </div>
             </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <h3 className="text-xl font-medium text-gray-700 mb-2">
-                No courses assigned yet
-              </h3>
-              <p className="text-gray-500">
-                Your instructor will assign courses to you soon.
-              </p>
-            </div>
-          )}
-        </section>
+          </TabsContent>
+        </Tabs>
       </main>
       
       <Footer />

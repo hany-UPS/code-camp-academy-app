@@ -8,11 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import CourseCard from "@/components/courses/CourseCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserCircle, CheckCircle, FileEdit } from "lucide-react";
+import { Search, UserCircle, CheckCircle, FileEdit, Trophy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import AddCourseForm from "@/components/courses/AddCourseForm";
 import AssignCourseForm from "@/components/courses/AssignCourseForm";
 import SessionsManager from "@/components/courses/SessionsManager";
+import StudentsRankingTable from "@/components/students/StudentsRankingTable";
+import QuizForm from "@/components/courses/QuizForm";
 import { Button } from "@/components/ui/button";
 
 interface Course {
@@ -48,6 +50,16 @@ interface Student {
   assignedCourses: string[];
 }
 
+interface StudentRank {
+  student_id: string;
+  name: string | null;
+  email: string | null;
+  total_points: number;
+  sessions_completed: number;
+  quizzes_completed: number;
+  rank: number;
+}
+
 interface SessionProgress {
   session_id: string;
   student_id: string;
@@ -62,11 +74,13 @@ const AdminDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [courseAssignments, setCourseAssignments] = useState<any[]>([]);
   const [sessionProgress, setSessionProgress] = useState<SessionProgress[]>([]);
+  const [studentRankings, setStudentRankings] = useState<StudentRank[]>([]);
   const [loading, setLoading] = useState(true);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [showAddCourse, setShowAddCourse] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<{id: string; name: string; assignedCourses: string[]} | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string} | null>(null);
+  const [selectedSession, setSelectedSession] = useState<{id: string; title: string} | null>(null);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -164,6 +178,33 @@ const AdminDashboard: React.FC = () => {
         setFilteredStudents(processedStudents);
         setCourseAssignments(assignmentsData || []);
       }
+      
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from("student_rankings")
+        .select(`
+          student_id,
+          total_points,
+          sessions_completed,
+          quizzes_completed,
+          profiles:student_id (name, email)
+        `)
+        .order("total_points", { ascending: false });
+        
+      if (rankingsError) {
+        console.error("Error fetching student rankings:", rankingsError);
+      } else if (rankingsData) {
+        const formattedRankings: StudentRank[] = rankingsData.map((ranking, index) => ({
+          student_id: ranking.student_id,
+          name: ranking.profiles?.name || null,
+          email: ranking.profiles?.email || null,
+          total_points: ranking.total_points,
+          sessions_completed: ranking.sessions_completed,
+          quizzes_completed: ranking.quizzes_completed,
+          rank: index + 1
+        }));
+        
+        setStudentRankings(formattedRankings);
+      }
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
@@ -221,6 +262,13 @@ const AdminDashboard: React.FC = () => {
     });
   };
   
+  const handleCreateQuiz = (sessionId: string, sessionTitle: string) => {
+    setSelectedSession({
+      id: sessionId,
+      title: sessionTitle
+    });
+  };
+  
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -244,6 +292,7 @@ const AdminDashboard: React.FC = () => {
           <TabsList className="mb-6">
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="students">Students</TabsTrigger>
+            <TabsTrigger value="rankings">Rankings</TabsTrigger>
           </TabsList>
           
           <TabsContent value="courses">
@@ -375,6 +424,28 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
           </TabsContent>
+          
+          <TabsContent value="rankings">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold flex items-center">
+                  <Trophy className="h-6 w-6 mr-2 text-yellow-500" /> 
+                  Student Rankings
+                </h2>
+                <Button
+                  onClick={fetchData}
+                  variant="outline"
+                  size="sm"
+                >
+                  Refresh Rankings
+                </Button>
+              </div>
+              
+              <div>
+                <StudentsRankingTable students={studentRankings} />
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
         
         {selectedStudent && (
@@ -397,6 +468,23 @@ const AdminDashboard: React.FC = () => {
               <SessionsManager
                 course={selectedCourse}
                 onClose={() => setSelectedCourse(null)}
+                onCreateQuiz={handleCreateQuiz}
+              />
+            </div>
+          </div>
+        )}
+        
+        {selectedSession && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+            <div className="max-w-3xl w-full my-8">
+              <QuizForm
+                sessionId={selectedSession.id}
+                sessionTitle={selectedSession.title}
+                onClose={() => setSelectedSession(null)}
+                onSuccess={() => {
+                  setSelectedSession(null);
+                  fetchData();
+                }}
               />
             </div>
           </div>
