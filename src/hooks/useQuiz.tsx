@@ -63,7 +63,7 @@ export function useQuiz(quizId: string, userId: string | undefined) {
           throw new Error("Failed to fetch quiz questions");
         }
         
-        // Transform the question data to ensure type safety
+        // Transform the question data to ensure type safety and set default points to 2
         const typedQuestions: QuizQuestion[] = (questionsData || []).map(q => ({
           id: q.id,
           quiz_id: q.quiz_id,
@@ -71,7 +71,7 @@ export function useQuiz(quizId: string, userId: string | undefined) {
           question_type: q.question_type === 'multiple_choice' ? 'multiple_choice' : 'true_false',
           options: Array.isArray(q.options) ? q.options.map(String) : null,
           correct_answer: q.correct_answer,
-          points: q.points,
+          points: 2, // Set default points to 2
           sequence_order: q.sequence_order
         }));
         

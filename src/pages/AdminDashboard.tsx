@@ -8,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import CourseCard from "@/components/courses/CourseCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserCircle, CheckCircle, FileEdit, Trophy } from "lucide-react";
+import { Search, UserCircle, CheckCircle, FileEdit, Trophy, UserPlus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import AddCourseForm from "@/components/courses/AddCourseForm";
 import AssignCourseForm from "@/components/courses/AssignCourseForm";
+import MultiAssignCourseForm from "@/components/courses/MultiAssignCourseForm";
 import SessionsManager from "@/components/courses/SessionsManager";
 import StudentsRankingTable from "@/components/students/StudentsRankingTable";
 import QuizForm from "@/components/courses/QuizForm";
@@ -81,6 +82,7 @@ const AdminDashboard: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<{id: string; name: string; assignedCourses: string[]} | null>(null);
   const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string} | null>(null);
   const [selectedSession, setSelectedSession] = useState<{id: string; title: string} | null>(null);
+  const [showMultiAssign, setShowMultiAssign] = useState(false);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -355,7 +357,16 @@ const AdminDashboard: React.FC = () => {
           
           <TabsContent value="students">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-4">All Students</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">All Students</h2>
+                <Button
+                  className="bg-academy-blue hover:bg-blue-600 text-white flex items-center"
+                  onClick={() => setShowMultiAssign(true)}
+                >
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Assign Course to Multiple Students
+                </Button>
+              </div>
               
               <div className="relative mb-6">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -457,6 +468,17 @@ const AdminDashboard: React.FC = () => {
                 onClose={() => setSelectedStudent(null)}
                 onAssignmentUpdated={fetchData}
                 assignedCourseIds={selectedStudent.assignedCourses}
+              />
+            </div>
+          </div>
+        )}
+        
+        {showMultiAssign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="max-w-4xl w-full">
+              <MultiAssignCourseForm
+                onClose={() => setShowMultiAssign(false)}
+                onAssignmentsUpdated={fetchData}
               />
             </div>
           </div>

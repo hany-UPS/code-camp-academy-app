@@ -14,6 +14,7 @@ import { Award, Star, Trophy, User } from "lucide-react";
 interface StudentRank {
   student_id: string;
   name: string | null;
+  email: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;

@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Card, 
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { QuizProgressService } from "@/services/QuizProgressService"; // Updated import
+import { QuizProgressService } from "@/services/QuizProgressService"; 
 import QuizError from "./QuizError";
 import QuizResults from "./QuizResults";
 import QuestionDisplay from "./QuestionDisplay";
@@ -42,24 +42,29 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
     totalQuestions
   } = useQuiz(quizId, user?.id);
   
-  const handleSubmitQuiz = async () => {
-    if (!quiz || !user) return;
-    
-    try {
-      const success = await QuizProgressService.submitQuizResult(quizId, user.id, score);
-      
-      if (success) {
-        onComplete(score);
+  // Auto-submit when quiz is completed
+  useEffect(() => {
+    const submitQuizResult = async () => {
+      if (quizCompleted && quiz && user) {
+        try {
+          const success = await QuizProgressService.submitQuizResult(quizId, user.id, score);
+          
+          if (success) {
+            onComplete(score);
+          }
+        } catch (error) {
+          console.error("Error submitting quiz:", error);
+          toast({
+            title: "Error",
+            description: "Failed to save your quiz results",
+            variant: "destructive",
+          });
+        }
       }
-    } catch (error) {
-      console.error("Error submitting quiz:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save your quiz results",
-        variant: "destructive",
-      });
-    }
-  };
+    };
+    
+    submitQuizResult();
+  }, [quizCompleted, quiz, user, quizId, score, onComplete]);
   
   if (loading) {
     return (
@@ -92,7 +97,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
         score={score}
         answers={answers}
         onClose={onClose}
-        onSubmit={handleSubmitQuiz}
+        onSubmit={() => onClose()} // Just close since we auto-submit
       />
     );
   }

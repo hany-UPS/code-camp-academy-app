@@ -109,7 +109,7 @@ const QuizResults: React.FC<QuizResultsProps> = ({
           Close
         </Button>
         <Button onClick={onSubmit} className="bg-purple-600 hover:bg-purple-700">
-          Save Results
+          Done
         </Button>
       </CardFooter>
     </Card>
