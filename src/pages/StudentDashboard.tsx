@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { createInitialRanking } from "@/types/supabase-extension";
 import { StudentProgressService } from "@/services/StudentProgressService";
+import { RankingService } from "@/services/RankingService"; // Updated import
 
 interface Course {
   id: string;

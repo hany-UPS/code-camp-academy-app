@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import { StudentProgressService } from "@/services/StudentProgressService";
+import { QuizProgressService } from "@/services/QuizProgressService"; // Updated import
 import QuizError from "./QuizError";
 import QuizResults from "./QuizResults";
 import QuestionDisplay from "./QuestionDisplay";
@@ -46,7 +46,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
     if (!quiz || !user) return;
     
     try {
-      const success = await StudentProgressService.submitQuizResult(quizId, user.id, score);
+      const success = await QuizProgressService.submitQuizResult(quizId, user.id, score);
       
       if (success) {
         onComplete(score);
