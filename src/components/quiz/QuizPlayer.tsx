@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { 
@@ -82,9 +83,21 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
           throw new Error("Failed to fetch quiz questions");
         }
         
+        // Transform the question data to ensure type safety
+        const typedQuestions: QuizQuestion[] = (questionsData || []).map(q => ({
+          id: q.id,
+          quiz_id: q.quiz_id,
+          question_text: q.question_text,
+          question_type: q.question_type === 'multiple_choice' ? 'multiple_choice' : 'true_false',
+          options: Array.isArray(q.options) ? q.options : null,
+          correct_answer: q.correct_answer,
+          points: q.points,
+          sequence_order: q.sequence_order
+        }));
+        
         setQuiz({
           ...quizData,
-          questions: questionsData || []
+          questions: typedQuestions
         });
         
         setLoading(false);
