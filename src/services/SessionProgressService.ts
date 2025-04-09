@@ -9,6 +9,9 @@ export class SessionProgressService {
    */
   static async markSessionCompleted(sessionId: string, studentId: string): Promise<boolean> {
     try {
+      // Initialize student ranking if needed
+      await RankingService.initializeStudentRanking(studentId);
+      
       // Check if already completed
       const { data: existingProgress } = await supabase
         .from('session_progress')

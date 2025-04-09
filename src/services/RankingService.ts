@@ -80,4 +80,46 @@ export class RankingService {
       console.error("Error in updateStudentRanking:", error);
     }
   }
+
+  /**
+   * Initialize student ranking if it doesn't exist yet
+   */
+  static async initializeStudentRanking(studentId: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from("student_rankings")
+        .select("student_id")
+        .eq("student_id", studentId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking student ranking:", error);
+        return false;
+      }
+      
+      if (!data) {
+        const { error: insertError } = await supabase
+          .from("student_rankings")
+          .insert({
+            student_id: studentId,
+            total_points: 0,
+            sessions_completed: 0,
+            quizzes_completed: 0
+          });
+        
+        if (insertError) {
+          console.error("Error creating initial ranking:", insertError);
+          return false;
+        } else {
+          console.log("Created initial ranking for student:", studentId);
+          return true;
+        }
+      }
+      
+      return true;
+    } catch (err) {
+      console.error("Error in initializeStudentRanking:", err);
+      return false;
+    }
+  }
 }

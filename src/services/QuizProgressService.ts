@@ -9,6 +9,9 @@ export class QuizProgressService {
    */
   static async submitQuizResult(quizId: string, studentId: string, score: number): Promise<boolean> {
     try {
+      // Initialize student ranking if needed
+      await RankingService.initializeStudentRanking(studentId);
+      
       // Check if already submitted
       const { data: existingSubmission } = await supabase
         .from('quiz_submissions')
