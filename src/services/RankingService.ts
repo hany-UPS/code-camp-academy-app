@@ -122,4 +122,42 @@ export class RankingService {
       return false;
     }
   }
+  
+  /**
+   * Get top ranked students with profile information
+   */
+  static async getTopStudents(limit: number = 10): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from("student_rankings")
+        .select(`
+          student_id,
+          total_points,
+          sessions_completed,
+          quizzes_completed,
+          profiles:student_id (name, email)
+        `)
+        .order("total_points", { ascending: false })
+        .limit(limit);
+        
+      if (error) {
+        console.error("Error fetching top students:", error);
+        return [];
+      }
+      
+      // Format the data to include name and email from profiles
+      return data.map((item, index) => ({
+        student_id: item.student_id,
+        name: item.profiles?.name,
+        email: item.profiles?.email,
+        total_points: item.total_points,
+        sessions_completed: item.sessions_completed,
+        quizzes_completed: item.quizzes_completed,
+        rank: index + 1
+      }));
+    } catch (error) {
+      console.error("Error in getTopStudents:", error);
+      return [];
+    }
+  }
 }

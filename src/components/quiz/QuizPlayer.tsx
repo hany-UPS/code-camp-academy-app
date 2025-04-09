@@ -1,5 +1,4 @@
-
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { 
   Card, 
@@ -25,6 +24,7 @@ interface QuizPlayerProps {
 
 const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) => {
   const { user } = useAuth();
+  const [resultSubmitted, setResultSubmitted] = useState(false);
   
   const {
     quiz,
@@ -45,12 +45,13 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
   // Auto-submit when quiz is completed
   useEffect(() => {
     const submitQuizResult = async () => {
-      if (quizCompleted && quiz && user) {
+      if (quizCompleted && quiz && user && !resultSubmitted) {
         try {
           const success = await QuizProgressService.submitQuizResult(quizId, user.id, score);
           
           if (success) {
-            onComplete(score);
+            setResultSubmitted(true);
+            // We don't call onComplete() here to keep results visible
           }
         } catch (error) {
           console.error("Error submitting quiz:", error);
@@ -64,7 +65,7 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
     };
     
     submitQuizResult();
-  }, [quizCompleted, quiz, user, quizId, score, onComplete]);
+  }, [quizCompleted, quiz, user, quizId, score, onComplete, resultSubmitted]);
   
   if (loading) {
     return (
@@ -97,7 +98,10 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
         score={score}
         answers={answers}
         onClose={onClose}
-        onSubmit={() => onClose()} // Just close since we auto-submit
+        onSubmit={() => {
+          onComplete(score); 
+          onClose();
+        }}
       />
     );
   }

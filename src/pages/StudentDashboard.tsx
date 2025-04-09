@@ -38,6 +38,7 @@ interface Session {
 interface StudentRank {
   student_id: string;
   name: string | null;
+  email: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;
@@ -162,64 +163,41 @@ const StudentDashboard: React.FC = () => {
         
         setAssignedCourses(coursesWithProgress);
         
-        const { data: rankingsData, error: rankingsError } = await supabase
-          .from("student_rankings")
-          .select(`
-            student_id,
-            total_points,
-            sessions_completed,
-            quizzes_completed,
-            profiles:student_id (name)
-          `)
-          .order("total_points", { ascending: false })
-          .limit(10);
-          
-        if (rankingsError) {
-          console.error("Error fetching rankings:", rankingsError);
-        } else if (rankingsData) {
-          const formattedRankings: StudentRank[] = rankingsData.map((ranking, index) => ({
-            student_id: ranking.student_id,
-            name: ranking.profiles?.name || null,
-            total_points: ranking.total_points,
-            sessions_completed: ranking.sessions_completed,
-            quizzes_completed: ranking.quizzes_completed,
-            rank: index + 1
-          }));
-          
-          setTopStudents(formattedRankings);
-          
-          const currentStudent = formattedRankings.find(s => s.student_id === user.id);
-          
-          if (currentStudent) {
-            setCurrentStudentRank(currentStudent);
-          } else {
-            const { data: userRankData } = await supabase
+        const topRankedStudents = await RankingService.getTopStudents(10);
+        setTopStudents(topRankedStudents);
+        
+        const currentStudent = topRankedStudents.find(s => s.student_id === user.id);
+        
+        if (currentStudent) {
+          setCurrentStudentRank(currentStudent);
+        } else {
+          const { data: userRankData } = await supabase
+            .from("student_rankings")
+            .select(`
+              student_id,
+              total_points, 
+              sessions_completed,
+              quizzes_completed,
+              profiles:student_id (name, email)
+            `)
+            .eq("student_id", user.id)
+            .maybeSingle();
+            
+          if (userRankData) {
+            const { count: higherRankedCount } = await supabase
               .from("student_rankings")
-              .select(`
-                student_id,
-                total_points, 
-                sessions_completed,
-                quizzes_completed,
-                profiles:student_id (name)
-              `)
-              .eq("student_id", user.id)
-              .single();
+              .select("*", { count: "exact", head: true })
+              .gt("total_points", userRankData.total_points);
               
-            if (userRankData) {
-              const { count: higherRankedCount } = await supabase
-                .from("student_rankings")
-                .select("*", { count: "exact", head: false })
-                .gt("total_points", userRankData.total_points);
-                
-              setCurrentStudentRank({
-                student_id: userRankData.student_id,
-                name: userRankData.profiles?.name || null,
-                total_points: userRankData.total_points,
-                sessions_completed: userRankData.sessions_completed,
-                quizzes_completed: userRankData.quizzes_completed,
-                rank: (higherRankedCount || 0) + 1
-              });
-            }
+            setCurrentStudentRank({
+              student_id: userRankData.student_id,
+              name: userRankData.profiles?.name,
+              email: userRankData.profiles?.email,
+              total_points: userRankData.total_points,
+              sessions_completed: userRankData.sessions_completed,
+              quizzes_completed: userRankData.quizzes_completed,
+              rank: (higherRankedCount || 0) + 1
+            });
           }
         }
         
@@ -318,7 +296,7 @@ const StudentDashboard: React.FC = () => {
                           </li>
                           <li className="flex items-center gap-2">
                             <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                            <span>1 point for each correct quiz answer</span>
+                            <span>2 points for each correct quiz answer</span>
                           </li>
                         </ul>
                       </div>
