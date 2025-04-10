@@ -55,6 +55,7 @@ interface StudentRank {
   student_id: string;
   name: string | null;
   email: string | null;
+  student_code?: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;
@@ -199,6 +200,7 @@ const AdminDashboard: React.FC = () => {
           student_id: ranking.student_id,
           name: ranking.profiles?.name || null,
           email: ranking.profiles?.email || null,
+          student_code: ranking.profiles?.student_code || null,
           total_points: ranking.total_points,
           sessions_completed: ranking.sessions_completed,
           quizzes_completed: ranking.quizzes_completed,
@@ -453,7 +455,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               
               <div>
-                <StudentsRankingTable students={studentRankings} />
+                <StudentsRankingTable 
+                  students={studentRankings as StudentRank[]} 
+                />
               </div>
             </div>
           </TabsContent>

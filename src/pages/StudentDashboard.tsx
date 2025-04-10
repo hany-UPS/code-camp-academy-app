@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -122,7 +121,6 @@ const StudentDashboard: React.FC = () => {
           return;
         }
         
-        // Store course data in state for timeline display
         if (coursesData) {
           const courseDataMap: Record<string, { title: string; description: string | null }> = {};
           coursesData.forEach(course => {
@@ -185,7 +183,6 @@ const StudentDashboard: React.FC = () => {
         
         setAssignedCourses(coursesWithProgress);
         
-        // Fetch course timelines
         const { data: timelineData, error: timelineError } = await supabase
           .from("course_timeline")
           .select("*")
@@ -193,8 +190,12 @@ const StudentDashboard: React.FC = () => {
           
         if (timelineError) {
           console.error("Error fetching course timeline:", timelineError);
-        } else {
-          setCourseTimelines(timelineData || []);
+        } else if (timelineData) {
+          const typedTimelineData: CourseTimeline[] = timelineData.map(item => ({
+            ...item,
+            status: item.status as 'not_started' | 'in_progress' | 'sessions_completed' | 'completed'
+          }));
+          setCourseTimelines(typedTimelineData);
         }
         
         const topRankedStudents = await RankingService.getTopStudents(10);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -34,6 +33,7 @@ interface Student {
   id: string;
   name: string | null;
   email: string | null;
+  phone?: string | null;
   student_code: string | null;
   assignedCourses: string[];
 }
@@ -132,7 +132,7 @@ const TeacherDashboard: React.FC = () => {
       
       const { data: studentsData, error: studentsError } = await supabase
         .from("profiles")
-        .select("id, name, student_code")
+        .select("id, name, email, student_code")
         .eq("role", "student");
         
       if (studentsError) {
@@ -156,13 +156,14 @@ const TeacherDashboard: React.FC = () => {
           setSessionProgress(progressData);
         }
         
-        const processedStudents = studentsData.map(student => {
+        const processedStudents: Student[] = studentsData.map(student => {
           const studentAssignments = assignmentsData?.filter(
             assignment => assignment.student_id === student.id
           ) || [];
           
           return {
             ...student,
+            email: student.email,
             assignedCourses: studentAssignments.map(a => a.course_id)
           };
         });
@@ -189,7 +190,7 @@ const TeacherDashboard: React.FC = () => {
         const formattedRankings: StudentRank[] = rankingsData.map((ranking, index) => ({
           student_id: ranking.student_id,
           name: ranking.profiles?.name || null,
-          email: null, // Teachers don't see student emails
+          email: null,
           student_code: ranking.profiles?.student_code || null,
           total_points: ranking.total_points,
           sessions_completed: ranking.sessions_completed,
