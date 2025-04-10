@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,20 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
 
 const SignupForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState<"student" | "teacher">("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -36,7 +29,7 @@ const SignupForm: React.FC = () => {
           data: {
             name,
             phone,
-            role
+            role: "student" // Default role is student
           }
         }
       });
@@ -55,7 +48,6 @@ const SignupForm: React.FC = () => {
           .from('profiles')
           .update({ 
             phone, 
-            role,
             name 
           })
           .eq('id', data.user.id);
@@ -67,15 +59,11 @@ const SignupForm: React.FC = () => {
       
       toast({
         title: "Sign up successful!",
-        description: `Your ${role} account has been created.`,
+        description: "Your account has been created.",
         variant: "default",
       });
       
-      if (role === 'teacher') {
-        navigate("/teacher-dashboard");
-      } else {
-        navigate("/student-dashboard");
-      }
+      navigate("/student-dashboard");
     } catch (error: any) {
       console.error("Signup error:", error);
     } finally {
@@ -93,22 +81,6 @@ const SignupForm: React.FC = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="role">Account Type</Label>
-            <Select 
-              value={role} 
-              onValueChange={(value: "student" | "teacher") => setRole(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select account type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="teacher">Teacher</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
