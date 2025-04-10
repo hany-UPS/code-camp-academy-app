@@ -8,12 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import CourseCard from "@/components/courses/CourseCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserCircle, CheckCircle, FileEdit, Trophy, UserPlus } from "lucide-react";
+import { Search, UserCircle, CheckCircle, FileEdit, Trophy, UserPlus, PlusCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import MultiAssignCourseForm from "@/components/courses/MultiAssignCourseForm";
 import SessionsManager from "@/components/courses/SessionsManager";
 import StudentsRankingTable from "@/components/students/StudentsRankingTable";
 import QuizForm from "@/components/courses/QuizForm";
+import AddCourseForm from "@/components/courses/AddCourseForm";
 import { Button } from "@/components/ui/button";
 
 interface Course {
@@ -70,6 +71,7 @@ const TeacherDashboard: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string} | null>(null);
   const [selectedSession, setSelectedSession] = useState<{id: string; title: string} | null>(null);
   const [showMultiAssign, setShowMultiAssign] = useState(false);
+  const [showAddCourse, setShowAddCourse] = useState(false);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -290,7 +292,16 @@ const TeacherDashboard: React.FC = () => {
           
           <TabsContent value="courses">
             <div className="mb-6">
-              <h2 className="text-2xl font-semibold">All Courses</h2>
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-semibold">All Courses</h2>
+                <Button 
+                  onClick={() => setShowAddCourse(true)} 
+                  className="bg-academy-blue hover:bg-blue-600 text-white flex items-center"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Add New Course
+                </Button>
+              </div>
             </div>
             
             {courses.length > 0 ? (
@@ -327,6 +338,13 @@ const TeacherDashboard: React.FC = () => {
             ) : (
               <div className="text-center p-8 bg-gray-50 rounded-lg">
                 <p className="text-gray-500">No courses available.</p>
+                <Button 
+                  onClick={() => setShowAddCourse(true)} 
+                  className="mt-4 bg-academy-blue hover:bg-blue-600"
+                >
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Create Your First Course
+                </Button>
               </div>
             )}
           </TabsContent>
@@ -490,6 +508,17 @@ const TeacherDashboard: React.FC = () => {
                   setSelectedSession(null);
                   fetchData();
                 }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {showAddCourse && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="max-w-2xl w-full">
+              <AddCourseForm
+                onClose={() => setShowAddCourse(false)}
+                onCoursesUpdated={fetchData}
               />
             </div>
           </div>

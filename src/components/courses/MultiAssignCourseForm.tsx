@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,17 +7,7 @@ import { Loader2, X, Check, AlertCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-
-interface Student {
-  id: string;
-  name: string | null;
-  student_code: string | null;
-}
-
-interface Course {
-  id: string;
-  title: string;
-}
+import { StudentService, Student } from "@/services/StudentService";
 
 interface MultiAssignCourseFormProps {
   onClose: () => void;
@@ -39,22 +28,18 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [searchType, setSearchType] = useState<'name' | 'code'>('name');
 
+  interface Course {
+    id: string;
+    title: string;
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         
-        // Fetch students
-        const { data: studentsData, error: studentsError } = await supabase
-          .from("profiles")
-          .select("id, name, student_code")
-          .eq("role", "student")
-          .order("name");
-        
-        if (studentsError) {
-          throw studentsError;
-        }
-        
+        // Fetch students using StudentService
+        const studentsData = await StudentService.fetchAllStudents();
         setStudents(studentsData || []);
         setFilteredStudents(studentsData || []);
         
@@ -84,25 +69,28 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredStudents(students);
+  // Add real-time search functionality
+  const handleSearch = async () => {
+    // Reset if empty query
+    if (!searchQuery.trim()) {
+      const allStudents = await StudentService.fetchAllStudents();
+      setFilteredStudents(allStudents);
       return;
     }
     
-    const query = searchQuery.toLowerCase();
+    // Search by name or code
+    const results = await StudentService.fetchStudents(searchQuery, searchType);
+    setFilteredStudents(results);
+  };
+  
+  // Debouncing search to prevent too many requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch();
+    }, 300);
     
-    const filtered = students.filter(
-      (student) => {
-        if (searchType === 'code') {
-          return student.student_code?.toLowerCase().includes(query);
-        } else {
-          return student.name?.toLowerCase().includes(query);
-        }
-      }
-    );
-    setFilteredStudents(filtered);
-  }, [searchQuery, searchType, students]);
+    return () => clearTimeout(timer);
+  }, [searchQuery, searchType]);
 
   const toggleStudentSelection = (studentId: string) => {
     const newSelectedStudents = new Set(selectedStudents);
