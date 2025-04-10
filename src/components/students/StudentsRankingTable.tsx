@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -11,26 +10,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Award, Search, Trophy, User } from "lucide-react";
-
-interface StudentRank {
-  student_id: string;
-  name: string | null;
-  email: string | null;
-  student_code: string | null;
-  total_points: number;
-  sessions_completed: number;
-  quizzes_completed: number;
-  rank: number;
-}
+import { StudentRank } from "@/types/supabase-extension";
 
 interface StudentsRankingTableProps {
-  students: StudentRank[];
+  students: (StudentRank & { rank: number })[];
 }
 
 const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchType, setSearchType] = useState<'name' | 'code'>('name');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof StudentRank; direction: 'ascending' | 'descending' }>({
+  const [sortConfig, setSortConfig] = useState<{ 
+    key: keyof (StudentRank & { rank: number }); 
+    direction: 'ascending' | 'descending' 
+  }>({
     key: 'rank',
     direction: 'ascending'
   });
@@ -61,7 +53,7 @@ const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students })
       : (b[sortConfig.key] as number) - (a[sortConfig.key] as number);
   });
   
-  const requestSort = (key: keyof StudentRank) => {
+  const requestSort = (key: keyof (StudentRank & { rank: number })) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';

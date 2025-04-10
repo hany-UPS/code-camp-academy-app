@@ -18,6 +18,8 @@ import StudentsRankingTable from "@/components/students/StudentsRankingTable";
 import QuizForm from "@/components/courses/QuizForm";
 import { Button } from "@/components/ui/button";
 
+import type { StudentRank as ImportedStudentRank } from "@/types/supabase-extension";
+
 interface Course {
   id: string;
   title: string;
@@ -51,16 +53,9 @@ interface Student {
   assignedCourses: string[];
 }
 
-interface StudentRank {
-  student_id: string;
-  name: string | null;
-  email: string | null;
-  student_code?: string | null;
-  total_points: number;
-  sessions_completed: number;
-  quizzes_completed: number;
+type StudentRank = ImportedStudentRank & {
   rank: number;
-}
+};
 
 interface SessionProgress {
   session_id: string;
@@ -189,7 +184,7 @@ const AdminDashboard: React.FC = () => {
           total_points,
           sessions_completed,
           quizzes_completed,
-          profiles:student_id (name, email)
+          profiles:student_id (name, email, student_code)
         `)
         .order("total_points", { ascending: false });
         
@@ -456,7 +451,7 @@ const AdminDashboard: React.FC = () => {
               
               <div>
                 <StudentsRankingTable 
-                  students={studentRankings as StudentRank[]} 
+                  students={studentRankings} 
                 />
               </div>
             </div>

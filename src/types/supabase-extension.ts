@@ -42,6 +42,16 @@ export interface StudentRanking {
   };
 }
 
+export interface StudentRank {
+  student_id: string;
+  name: string | null;
+  email: string | null;
+  student_code?: string | null;
+  total_points: number;
+  sessions_completed: number;
+  quizzes_completed: number;
+}
+
 export interface CourseTimeline {
   id: string;
   student_id: string;
