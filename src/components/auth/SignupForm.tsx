@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,12 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 const SignupForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [role, setRole] = useState<"student" | "teacher">("student");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -29,6 +36,7 @@ const SignupForm: React.FC = () => {
           data: {
             name,
             phone,
+            role
           }
         }
       });
@@ -42,11 +50,14 @@ const SignupForm: React.FC = () => {
         throw error;
       }
 
-      // Update profile with phone number
       if (data.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ phone })
+          .update({ 
+            phone, 
+            role,
+            name 
+          })
           .eq('id', data.user.id);
 
         if (profileError) {
@@ -56,12 +67,15 @@ const SignupForm: React.FC = () => {
       
       toast({
         title: "Sign up successful!",
-        description: "Your account has been created. You can now log in.",
+        description: `Your ${role} account has been created.`,
         variant: "default",
       });
       
-      // Navigate to login page or directly log in the user
-      navigate("/login");
+      if (role === 'teacher') {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/student-dashboard");
+      }
     } catch (error: any) {
       console.error("Signup error:", error);
     } finally {
@@ -80,6 +94,22 @@ const SignupForm: React.FC = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="role">Account Type</Label>
+            <Select 
+              value={role} 
+              onValueChange={(value: "student" | "teacher") => setRole(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select account type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="name">Full Name</Label>
             <Input
               id="name"
@@ -91,6 +121,7 @@ const SignupForm: React.FC = () => {
               className="rounded-md"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -103,6 +134,7 @@ const SignupForm: React.FC = () => {
               className="rounded-md"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <Input
@@ -114,6 +146,7 @@ const SignupForm: React.FC = () => {
               className="rounded-md"
             />
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -127,6 +160,7 @@ const SignupForm: React.FC = () => {
               minLength={6}
             />
           </div>
+
           <Button 
             type="submit" 
             className="w-full bg-academy-orange hover:bg-orange-600 transition-colors"
