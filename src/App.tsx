@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import StudentDashboard from "./pages/StudentDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import CourseView from "./pages/CourseView";
 import LoginPage from "./pages/LoginPage";
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/login" element={<LoginPage />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="/courses/:courseId" element={<CourseView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

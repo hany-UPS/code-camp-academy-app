@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
 const Header: React.FC = () => {
-  const { isAuthenticated, logout, isAdmin } = useAuth();
+  const { isAuthenticated, logout, isAdmin, isTeacher } = useAuth();
 
   return (
     <header className="bg-white shadow-md py-4">
@@ -34,6 +34,15 @@ const Header: React.FC = () => {
                       </Link>
                     </li>
                   </>
+                ) : isTeacher() ? (
+                  <li>
+                    <Link
+                      to="/teacher-dashboard"
+                      className="hover:text-academy-blue transition-colors"
+                    >
+                      Teacher Dashboard
+                    </Link>
+                  </li>
                 ) : (
                   <li>
                     <Link

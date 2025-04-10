@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +11,8 @@ import Leaderboard from "@/components/rankings/Leaderboard";
 import StudentRankCard from "@/components/rankings/StudentRankCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { CourseTimeline } from "@/types/supabase-extension";
+import CourseTimelineDisplay from "@/components/timeline/CourseTimelineDisplay";
 import { StudentProgressService } from "@/services/StudentProgressService";
 import { RankingService } from "@/services/RankingService";
 
@@ -39,6 +42,7 @@ interface StudentRank {
   student_id: string;
   name: string | null;
   email: string | null;
+  student_code: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;
@@ -52,6 +56,8 @@ const StudentDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [topStudents, setTopStudents] = useState<StudentRank[]>([]);
   const [currentStudentRank, setCurrentStudentRank] = useState<StudentRank | null>(null);
+  const [courseTimelines, setCourseTimelines] = useState<CourseTimeline[]>([]);
+  const [courseData, setCourseData] = useState<Record<string, { title: string; description: string | null }>>({});
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -60,7 +66,11 @@ const StudentDashboard: React.FC = () => {
     }
     
     if (user && user.role !== "student") {
-      navigate("/admin-dashboard");
+      if (user.role === "admin") {
+        navigate("/admin-dashboard");
+      } else if (user.role === "teacher") {
+        navigate("/teacher-dashboard");
+      }
       return;
     }
     
@@ -110,6 +120,18 @@ const StudentDashboard: React.FC = () => {
           });
           setLoading(false);
           return;
+        }
+        
+        // Store course data in state for timeline display
+        if (coursesData) {
+          const courseDataMap: Record<string, { title: string; description: string | null }> = {};
+          coursesData.forEach(course => {
+            courseDataMap[course.id] = {
+              title: course.title,
+              description: course.description
+            };
+          });
+          setCourseData(courseDataMap);
         }
         
         const { data: sessionsData, error: sessionsError } = await supabase
@@ -163,6 +185,18 @@ const StudentDashboard: React.FC = () => {
         
         setAssignedCourses(coursesWithProgress);
         
+        // Fetch course timelines
+        const { data: timelineData, error: timelineError } = await supabase
+          .from("course_timeline")
+          .select("*")
+          .eq("student_id", user.id);
+          
+        if (timelineError) {
+          console.error("Error fetching course timeline:", timelineError);
+        } else {
+          setCourseTimelines(timelineData || []);
+        }
+        
         const topRankedStudents = await RankingService.getTopStudents(10);
         setTopStudents(topRankedStudents);
         
@@ -178,7 +212,7 @@ const StudentDashboard: React.FC = () => {
               total_points, 
               sessions_completed,
               quizzes_completed,
-              profiles:student_id (name, email)
+              profiles:student_id (name, email, student_code)
             `)
             .eq("student_id", user.id)
             .maybeSingle();
@@ -193,6 +227,7 @@ const StudentDashboard: React.FC = () => {
               student_id: userRankData.student_id,
               name: userRankData.profiles?.name,
               email: userRankData.profiles?.email,
+              student_code: userRankData.profiles?.student_code,
               total_points: userRankData.total_points,
               sessions_completed: userRankData.sessions_completed,
               quizzes_completed: userRankData.quizzes_completed,
@@ -238,6 +273,7 @@ const StudentDashboard: React.FC = () => {
         <Tabs defaultValue="courses" className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="courses">My Courses</TabsTrigger>
+            <TabsTrigger value="timeline">Learning Path</TabsTrigger>
             <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
           </TabsList>
           
@@ -280,6 +316,13 @@ const StudentDashboard: React.FC = () => {
             </div>
           </TabsContent>
           
+          <TabsContent value="timeline">
+            <CourseTimelineDisplay 
+              courseTimelines={courseTimelines}
+              courseData={courseData}
+            />
+          </TabsContent>
+          
           <TabsContent value="leaderboard">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
               <div className="lg:col-span-1">
@@ -320,6 +363,9 @@ const StudentDashboard: React.FC = () => {
                           <p className="text-center text-purple-800 font-semibold">Your Current Rank</p>
                           <p className="text-center text-3xl font-bold text-purple-900">#{currentStudentRank.rank}</p>
                           <p className="text-center text-purple-700 mt-1">{currentStudentRank.total_points} Points</p>
+                          {currentStudentRank.student_code && (
+                            <p className="text-center text-purple-700 mt-1">Student ID: {currentStudentRank.student_code}</p>
+                          )}
                         </div>
                       )}
                     </div>

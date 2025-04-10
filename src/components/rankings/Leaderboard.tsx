@@ -1,106 +1,101 @@
 
-import React from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award, Star, Trophy, User } from "lucide-react";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Trophy, Medal, Award, User } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface StudentRank {
+interface Ranking {
   student_id: string;
   name: string | null;
-  email: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;
   rank: number;
+  student_code?: string | null;
 }
 
 interface LeaderboardProps {
-  rankings: StudentRank[];
-  currentUserId?: string;
-  showAllRanks?: boolean;
+  rankings: Ranking[];
+  currentUserId: string | undefined;
 }
 
-const getRankIcon = (rank: number) => {
-  switch (rank) {
-    case 1:
-      return <Trophy className="h-5 w-5 text-yellow-500" />;
-    case 2:
-      return <Award className="h-5 w-5 text-gray-400" />;
-    case 3:
-      return <Award className="h-5 w-5 text-amber-700" />;
-    default:
-      return <Star className="h-5 w-5 text-academy-blue" />;
-  }
-};
+const Leaderboard: React.FC<LeaderboardProps> = ({ rankings, currentUserId }) => {
+  // Take the top 10 ranked students
+  const topRankings = rankings.slice(0, 10);
 
-const Leaderboard: React.FC<LeaderboardProps> = ({ 
-  rankings, 
-  currentUserId,
-  showAllRanks = false 
-}) => {
+  if (topRankings.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Leaderboard</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center p-8">
+          <p className="text-gray-500">No rankings available yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="border-2 border-indigo-100 shadow-md">
-      <CardHeader className="bg-gradient-to-r from-purple-700 to-indigo-600 text-white">
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-6 w-6" />
-          Student Leaderboard
-        </CardTitle>
+    <Card className="overflow-hidden">
+      <CardHeader className="bg-purple-50">
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center">
+            <Trophy className="mr-2 h-5 w-5 text-yellow-500" />
+            Student Leaderboard
+          </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader className="bg-purple-50">
-            <TableRow>
-              <TableHead className="w-12 text-center">Rank</TableHead>
-              <TableHead>Student</TableHead>
-              <TableHead className="text-right">Points</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Sessions</TableHead>
-              <TableHead className="hidden md:table-cell text-right">Quizzes</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rankings.map((student) => (
-              <TableRow 
-                key={student.student_id}
-                className={`${student.student_id === currentUserId ? "bg-purple-100" : ""} 
-                           ${student.rank <= 3 ? "font-medium" : ""}`}
-              >
-                <TableCell className="text-center">
-                  <div className="flex justify-center">
-                    {getRankIcon(student.rank)}
-                    <span className="sr-only">Rank {student.rank}</span>
+        <div className="grid grid-cols-1 divide-y">
+          {topRankings.map((student) => (
+            <div 
+              key={student.student_id}
+              className={cn(
+                "flex items-center p-4",
+                currentUserId === student.student_id ? "bg-blue-50" : ""
+              )}
+            >
+              <div className="flex-shrink-0 w-12 flex justify-center items-center">
+                {student.rank === 1 ? (
+                  <Trophy className="h-7 w-7 text-yellow-500" />
+                ) : student.rank === 2 ? (
+                  <Award className="h-6 w-6 text-gray-400" />
+                ) : student.rank === 3 ? (
+                  <Medal className="h-6 w-6 text-amber-700" />
+                ) : (
+                  <div className="text-lg font-bold text-gray-500">#{student.rank}</div>
+                )}
+              </div>
+              
+              <div className="flex-grow mx-4">
+                <div className="flex items-center">
+                  <div className="bg-purple-100 h-10 w-10 rounded-full flex items-center justify-center mr-3">
+                    <User className="h-5 w-5 text-purple-700" />
                   </div>
-                </TableCell>
-                <TableCell className="font-medium flex items-center gap-2">
-                  <div className="bg-purple-100 rounded-full p-1">
-                    <User className="h-4 w-4 text-purple-700" />
+                  <div>
+                    <div className="font-medium">
+                      {student.name || "Anonymous Student"}
+                      {student.student_code && (
+                        <span className="ml-2 text-xs text-gray-500">
+                          (ID: {student.student_code})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {student.sessions_completed} sessions • {student.quizzes_completed} quizzes
+                    </div>
                   </div>
-                  {student.name || "Anonymous Student"}
-                  {student.student_id === currentUserId && (
-                    <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                      You
-                    </span>
-                  )}
-                </TableCell>
-                <TableCell className="text-right font-semibold">
-                  {student.total_points}
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-right">
-                  {student.sessions_completed}
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-right">
-                  {student.quizzes_completed}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+              
+              <div className="flex-shrink-0 text-right">
+                <div className="font-bold text-lg">{student.total_points}</div>
+                <div className="text-xs text-gray-500">POINTS</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );

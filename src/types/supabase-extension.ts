@@ -38,7 +38,51 @@ export interface StudentRanking {
   profiles?: {
     name: string | null;
     email: string | null;
+    student_code: string | null;
   };
+}
+
+export interface CourseTimeline {
+  id: string;
+  student_id: string;
+  course_id: string;
+  status: 'not_started' | 'in_progress' | 'sessions_completed' | 'completed';
+  start_date: string;
+  completion_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CourseExam {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  is_visible: boolean;
+  pass_score: number;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+}
+
+export interface ExamQuestion {
+  id: string;
+  exam_id: string;
+  question_text: string;
+  options: string[] | null;
+  correct_answer: string;
+  points: number;
+  sequence_order: number;
+}
+
+export interface ExamSubmission {
+  id: string;
+  exam_id: string;
+  student_id: string;
+  score: number;
+  answers: Record<string, string>;
+  passed: boolean;
+  completed_at: string;
 }
 
 // Helper function for creating initial ranking

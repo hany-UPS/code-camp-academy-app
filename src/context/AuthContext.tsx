@@ -9,8 +9,9 @@ type UserProfile = {
   id: string;
   name: string | null;
   email: string | null;
-  role: "student" | "admin";
+  role: "student" | "admin" | "teacher";
   phone?: string | null;
+  student_code?: string | null;
 };
 
 interface AuthContextType {
@@ -20,6 +21,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: () => boolean;
+  isTeacher: () => boolean;
+  isStaff: () => boolean; // Either admin or teacher
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -162,6 +165,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return user?.role === "admin";
   };
   
+  const isTeacher = () => {
+    return user?.role === "teacher";
+  };
+  
+  const isStaff = () => {
+    return user?.role === "admin" || user?.role === "teacher";
+  };
+  
   return (
     <AuthContext.Provider
       value={{
@@ -171,6 +182,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         login,
         logout,
         isAdmin,
+        isTeacher,
+        isStaff,
       }}
     >
       {children}

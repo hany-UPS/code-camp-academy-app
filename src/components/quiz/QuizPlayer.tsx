@@ -51,6 +51,11 @@ const QuizPlayer: React.FC<QuizPlayerProps> = ({ quizId, onComplete, onClose }) 
           
           if (success) {
             setResultSubmitted(true);
+            toast({
+              title: "Quiz Submitted",
+              description: `You scored ${score} points!`,
+              variant: "default",
+            });
             // We don't call onComplete() here to keep results visible
           }
         } catch (error) {

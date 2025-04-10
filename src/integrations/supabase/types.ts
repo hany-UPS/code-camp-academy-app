@@ -84,6 +84,91 @@ export type Database = {
           },
         ]
       }
+      course_exams: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_visible: boolean | null
+          pass_score: number | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_visible?: boolean | null
+          pass_score?: number | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_visible?: boolean | null
+          pass_score?: number | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_exams_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      course_timeline: {
+        Row: {
+          completion_date: string | null
+          course_id: string
+          created_at: string | null
+          id: string
+          start_date: string | null
+          status: string
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completion_date?: string | null
+          course_id: string
+          created_at?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completion_date?: string | null
+          course_id?: string
+          created_at?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_timeline_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string
@@ -111,6 +196,88 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_questions: {
+        Row: {
+          correct_answer: string
+          created_at: string | null
+          exam_id: string
+          id: string
+          options: Json | null
+          points: number | null
+          question_text: string
+          sequence_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string | null
+          exam_id: string
+          id?: string
+          options?: Json | null
+          points?: number | null
+          question_text: string
+          sequence_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string | null
+          exam_id?: string
+          id?: string
+          options?: Json | null
+          points?: number | null
+          question_text?: string
+          sequence_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_questions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "course_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_submissions: {
+        Row: {
+          answers: Json | null
+          completed_at: string | null
+          exam_id: string
+          id: string
+          passed: boolean
+          score: number
+          student_id: string
+        }
+        Insert: {
+          answers?: Json | null
+          completed_at?: string | null
+          exam_id: string
+          id?: string
+          passed?: boolean
+          score?: number
+          student_id: string
+        }
+        Update: {
+          answers?: Json | null
+          completed_at?: string | null
+          exam_id?: string
+          id?: string
+          passed?: boolean
+          score?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_submissions_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "course_exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -119,6 +286,7 @@ export type Database = {
           name: string | null
           phone: string | null
           role: string
+          student_code: string | null
           updated_at: string
         }
         Insert: {
@@ -128,6 +296,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           role?: string
+          student_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -137,6 +306,7 @@ export type Database = {
           name?: string | null
           phone?: string | null
           role?: string
+          student_code?: string | null
           updated_at?: string
         }
         Relationships: []

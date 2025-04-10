@@ -4,13 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, X, Check, AlertCircle } from "lucide-react";
+import { Loader2, X, Check, AlertCircle, Search } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
 interface Student {
   id: string;
   name: string | null;
+  student_code: string | null;
 }
 
 interface Course {
@@ -35,6 +37,7 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [searchType, setSearchType] = useState<'name' | 'code'>('name');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,7 +47,7 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
         // Fetch students
         const { data: studentsData, error: studentsError } = await supabase
           .from("profiles")
-          .select("id, name")
+          .select("id, name, student_code")
           .eq("role", "student")
           .order("name");
         
@@ -87,11 +90,19 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
       return;
     }
     
+    const query = searchQuery.toLowerCase();
+    
     const filtered = students.filter(
-      (student) => student.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      (student) => {
+        if (searchType === 'code') {
+          return student.student_code?.toLowerCase().includes(query);
+        } else {
+          return student.name?.toLowerCase().includes(query);
+        }
+      }
     );
     setFilteredStudents(filtered);
-  }, [searchQuery, students]);
+  }, [searchQuery, searchType, students]);
 
   const toggleStudentSelection = (studentId: string) => {
     const newSelectedStudents = new Set(selectedStudents);
@@ -230,14 +241,41 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
               <div>
                 <h3 className="font-medium mb-3">2. Select Students</h3>
                 
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    placeholder="Search students..."
-                    className="w-full px-3 py-2 border rounded-md"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                <div className="mb-3 space-y-2">
+                  <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="radio" 
+                        id="search-by-name" 
+                        name="search-type" 
+                        checked={searchType === 'name'} 
+                        onChange={() => setSearchType('name')} 
+                      />
+                      <label htmlFor="search-by-name">Search by name</label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input 
+                        type="radio" 
+                        id="search-by-code" 
+                        name="search-type" 
+                        checked={searchType === 'code'} 
+                        onChange={() => setSearchType('code')} 
+                      />
+                      <label htmlFor="search-by-code">Search by student code</label>
+                    </div>
+                  </div>
+                  
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder={searchType === 'code' ? "Enter student code..." : "Search students..."}
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
                 </div>
                 
                 <div className="mb-2 flex items-center">
@@ -272,7 +310,10 @@ const MultiAssignCourseForm: React.FC<MultiAssignCourseFormProps> = ({
                                 onCheckedChange={() => {}} // Handled by row click
                               />
                             </TableCell>
-                            <TableCell>{student.name || "Unnamed Student"}</TableCell>
+                            <TableCell>
+                              {student.name || "Unnamed Student"} 
+                              {student.student_code && <span className="ml-2 text-sm text-gray-500">(ID: {student.student_code})</span>}
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

@@ -128,6 +128,7 @@ export class RankingService {
    */
   static async getTopStudents(limit: number = 10): Promise<any[]> {
     try {
+      // Updated query to join with profiles and get the correct student names
       const { data, error } = await supabase
         .from("student_rankings")
         .select(`
@@ -135,7 +136,7 @@ export class RankingService {
           total_points,
           sessions_completed,
           quizzes_completed,
-          profiles:student_id (name, email)
+          profiles!student_rankings_student_id_fkey (name, email, student_code)
         `)
         .order("total_points", { ascending: false })
         .limit(limit);
@@ -148,8 +149,9 @@ export class RankingService {
       // Format the data to include name and email from profiles
       return data.map((item, index) => ({
         student_id: item.student_id,
-        name: item.profiles?.name,
-        email: item.profiles?.email,
+        name: item.profiles?.name || "Unnamed Student",
+        email: item.profiles?.email || null,
+        student_code: item.profiles?.student_code || null,
         total_points: item.total_points,
         sessions_completed: item.sessions_completed,
         quizzes_completed: item.quizzes_completed,

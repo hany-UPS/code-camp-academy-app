@@ -16,6 +16,7 @@ interface StudentRank {
   student_id: string;
   name: string | null;
   email: string | null;
+  student_code: string | null;
   total_points: number;
   sessions_completed: number;
   quizzes_completed: number;
@@ -28,6 +29,7 @@ interface StudentsRankingTableProps {
 
 const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchType, setSearchType] = useState<'name' | 'code'>('name');
   const [sortConfig, setSortConfig] = useState<{ key: keyof StudentRank; direction: 'ascending' | 'descending' }>({
     key: 'rank',
     direction: 'ascending'
@@ -35,9 +37,13 @@ const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students })
   
   const filteredStudents = students.filter(student => {
     const searchLower = searchQuery.toLowerCase();
-    const nameMatch = student.name?.toLowerCase().includes(searchLower);
-    const emailMatch = student.email?.toLowerCase().includes(searchLower);
-    return searchQuery === "" || nameMatch || emailMatch;
+    
+    if (searchType === 'code') {
+      return student.student_code?.toLowerCase().includes(searchLower);
+    } else {
+      const nameMatch = student.name?.toLowerCase().includes(searchLower);
+      return searchQuery === "" || nameMatch;
+    }
   });
   
   const sortedStudents = [...filteredStudents].sort((a, b) => {
@@ -79,14 +85,40 @@ const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students })
   return (
     <Card className="overflow-hidden">
       <div className="p-4 bg-white">
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            placeholder="Search students by name or email..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="mb-4 space-y-3">
+          <div className="flex space-x-4">
+            <div className="flex items-center space-x-2">
+              <input 
+                type="radio" 
+                id="search-by-name" 
+                name="search-type" 
+                checked={searchType === 'name'} 
+                onChange={() => setSearchType('name')} 
+              />
+              <label htmlFor="search-by-name">Search by name</label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input 
+                type="radio" 
+                id="search-by-code" 
+                name="search-type" 
+                checked={searchType === 'code'} 
+                onChange={() => setSearchType('code')} 
+              />
+              <label htmlFor="search-by-code">Search by student code</label>
+            </div>
+          </div>
+        
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder={searchType === 'code' ? "Search by student code..." : "Search by student name..."}
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
         
         <div className="max-h-[600px] overflow-auto">
@@ -133,8 +165,14 @@ const StudentsRankingTable: React.FC<StudentsRankingTableProps> = ({ students })
                         <User className="h-4 w-4 text-purple-700" />
                       </div>
                       <div>
-                        <div>{student.name || "Unnamed Student"}</div>
-                        <div className="text-xs text-gray-500">{student.email || "No email"}</div>
+                        <div>
+                          {student.name || "Unnamed Student"}
+                          {student.student_code && (
+                            <span className="ml-2 text-xs text-gray-600">
+                              (ID: {student.student_code})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
