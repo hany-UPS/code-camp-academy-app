@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2, Mail, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -89,11 +89,33 @@ const ForgotPasswordForm: React.FC = () => {
                 "Send Reset Link"
               )}
             </Button>
+            
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Important:</strong> The reset link will expire after 24 hours. 
+                Please check both your inbox and spam/junk folders.
+              </p>
+            </div>
           </form>
         ) : (
           <div className="text-center py-4">
             <Mail className="mx-auto h-12 w-12 text-green-500 mb-4" />
             <p className="mb-4">If an account exists with that email, we've sent a password reset link.</p>
+            <div className="p-3 bg-blue-50 rounded-lg mb-4 text-left">
+              <div className="flex items-start space-x-2">
+                <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-blue-800">
+                    <strong>Important:</strong> Password reset links are valid for 24 hours only.
+                  </p>
+                  <ul className="text-sm text-blue-800 list-disc pl-5 mt-1">
+                    <li>Check both your inbox and spam/junk folders</li>
+                    <li>Click the link in the email to set a new password</li>
+                    <li>If the link expires, you'll need to request a new one</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
             <Button 
               onClick={() => setIsSuccess(false)}
               variant="outline"

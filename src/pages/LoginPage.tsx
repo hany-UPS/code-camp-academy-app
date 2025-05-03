@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import LoginForm from "@/components/auth/LoginForm";
 import SignupForm from "@/components/auth/SignupForm";
@@ -89,10 +90,17 @@ const createStudentUser = async () => {
 const LoginPage: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [initialized, setInitialized] = useState(false);
   const [activeTab, setActiveTab] = useState("login");
   
   useEffect(() => {
+    // Set active tab from location state (used when redirecting from reset page)
+    const locationState = location.state as { activeTab?: string } | undefined;
+    if (locationState?.activeTab) {
+      setActiveTab(locationState.activeTab);
+    }
+    
     // Create test users on first load (for demo purposes)
     if (!initialized) {
       createAdminUser();
@@ -103,11 +111,13 @@ const LoginPage: React.FC = () => {
     if (isAuthenticated) {
       if (user?.role === "admin") {
         navigate("/admin-dashboard");
+      } else if (user?.role === "teacher") {
+        navigate("/teacher-dashboard");
       } else {
         navigate("/student-dashboard");
       }
     }
-  }, [isAuthenticated, navigate, user, initialized]);
+  }, [isAuthenticated, navigate, user, initialized, location.state]);
   
   return (
     <div className="min-h-screen flex flex-col">
