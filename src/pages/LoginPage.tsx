@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -9,6 +8,7 @@ import Footer from "@/components/layout/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ForgotPasswordForm from "@/components/auth/ForgotPasswordForm";
 
 // This will create a test admin user on first run
 const createAdminUser = async () => {
@@ -115,9 +115,10 @@ const LoginPage: React.FC = () => {
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="forgot">Forgot Password</TabsTrigger>
             </TabsList>
             <div className="mt-6">
               <TabsContent value="login">
@@ -125,6 +126,9 @@ const LoginPage: React.FC = () => {
               </TabsContent>
               <TabsContent value="signup">
                 <SignupForm />
+              </TabsContent>
+              <TabsContent value="forgot">
+                <ForgotPasswordForm />
               </TabsContent>
             </div>
           </Tabs>
