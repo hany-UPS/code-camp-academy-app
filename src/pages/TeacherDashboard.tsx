@@ -16,6 +16,7 @@ import StudentsRankingTable from "@/components/students/StudentsRankingTable";
 import QuizForm from "@/components/courses/QuizForm";
 import AddCourseForm from "@/components/courses/AddCourseForm";
 import { Button } from "@/components/ui/button";
+import { StudentService, Student } from "@/services/StudentService";
 
 interface Course {
   id: string;
@@ -28,15 +29,6 @@ interface Course {
     is_active: boolean;
   }>;
   activeSessions: number;
-}
-
-interface Student {
-  id: string;
-  name: string | null;
-  email: string | null;
-  phone?: string | null;
-  student_code: string | null;
-  assignedCourses: string[];
 }
 
 interface StudentRank {
@@ -132,14 +124,9 @@ const TeacherDashboard: React.FC = () => {
       
       setCourses(processedCourses);
       
-      const { data: studentsData, error: studentsError } = await supabase
-        .from("profiles")
-        .select("id, name, email, student_code")
-        .eq("role", "student");
-        
-      if (studentsError) {
-        console.error("Error fetching students:", studentsError);
-      } else if (studentsData) {
+      // Use StudentService to fetch students
+      const studentsData = await StudentService.fetchAllStudents();
+      if (studentsData) {
         const { data: assignmentsData, error: assignmentsError } = await supabase
           .from("course_assignments")
           .select("*");
