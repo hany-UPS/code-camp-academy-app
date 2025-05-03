@@ -7,6 +7,7 @@ export interface Student {
   name: string | null;
   email: string | null;
   student_code: string | null;
+  assignedCourses?: string[]; // Added this property to fix the type errors
 }
 
 export class StudentService {
