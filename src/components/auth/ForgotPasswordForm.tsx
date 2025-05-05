@@ -20,10 +20,8 @@ const ForgotPasswordForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Request OTP code via email (Supabase will handle the email delivery)
+      // Send password reset link via email
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        // Important: We need to use OTP mode here instead of the default magicLink mode
-        // This will send a 6-digit code instead of a reset link
         redirectTo: window.location.origin + "/reset-password",
       });
       
@@ -36,18 +34,15 @@ const ForgotPasswordForm: React.FC = () => {
       } else {
         setIsSuccess(true);
         toast({
-          title: "Verification Code Sent",
-          description: "Check your email for the verification code",
+          title: "Recovery Email Sent",
+          description: "Check your email for the password reset link",
         });
-        
-        // Navigate to the reset password page with the email
-        navigate("/reset-password", { state: { email } });
       }
     } catch (error: any) {
       console.error("Password reset error:", error);
       toast({
         title: "Error",
-        description: "Failed to send verification code",
+        description: "Failed to send reset link",
         variant: "destructive",
       });
     } finally {
@@ -61,8 +56,8 @@ const ForgotPasswordForm: React.FC = () => {
         <CardTitle className="text-2xl">Reset Password</CardTitle>
         <CardDescription>
           {isSuccess 
-            ? "Check your email for a verification code" 
-            : "Enter your email to receive a verification code"}
+            ? "Check your email for a password reset link" 
+            : "Enter your email to receive a password reset link"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -94,42 +89,42 @@ const ForgotPasswordForm: React.FC = () => {
                   Sending...
                 </>
               ) : (
-                "Send Verification Code"
+                "Send Reset Link"
               )}
             </Button>
             
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Important:</strong> You will receive an email with a 6-digit verification code.
-                Please enter this code on the next screen to reset your password.
+                <strong>Important:</strong> You will receive an email with a password reset link.
+                Click the link to set a new password for your account.
               </p>
             </div>
           </form>
         ) : (
           <div className="text-center py-4">
             <Mail className="mx-auto h-12 w-12 text-green-500 mb-4" />
-            <p className="mb-4">If an account exists with that email, we've sent a verification code.</p>
+            <p className="mb-4">If an account exists with that email, we've sent a password reset link.</p>
             <div className="p-3 bg-blue-50 rounded-lg mb-4 text-left">
               <div className="flex items-start space-x-2">
                 <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm text-blue-800">
-                    <strong>Important:</strong> Verification codes are valid for 24 hours only.
+                    <strong>Important:</strong> Password reset links are valid for 24 hours only.
                   </p>
                   <ul className="text-sm text-blue-800 list-disc pl-5 mt-1">
                     <li>Check both your inbox and spam/junk folders</li>
-                    <li>Enter the 6-digit code on the reset password page</li>
-                    <li>If you don't receive the code, you can request a new one</li>
+                    <li>Click the link in the email to reset your password</li>
+                    <li>If you don't receive the email, you can request a new link</li>
                   </ul>
                 </div>
               </div>
             </div>
             <Button 
-              onClick={() => navigate("/reset-password", { state: { email } })}
+              onClick={() => navigate("/login")}
               variant="default"
               className="w-full bg-academy-orange hover:bg-orange-600 transition-colors"
             >
-              Continue to Reset Password
+              Return to Login
             </Button>
           </div>
         )}
