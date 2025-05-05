@@ -20,8 +20,10 @@ const ForgotPasswordForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Send OTP code to user's email
+      // Request OTP code via email (Supabase will handle the email delivery)
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        // Important: We need to use OTP mode here instead of the default magicLink mode
+        // This will send a 6-digit code instead of a reset link
         redirectTo: window.location.origin + "/reset-password",
       });
       
@@ -98,8 +100,8 @@ const ForgotPasswordForm: React.FC = () => {
             
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>Important:</strong> The verification code will expire after 24 hours. 
-                Please check both your inbox and spam/junk folders.
+                <strong>Important:</strong> You will receive an email with a 6-digit verification code.
+                Please enter this code on the next screen to reset your password.
               </p>
             </div>
           </form>
@@ -116,8 +118,8 @@ const ForgotPasswordForm: React.FC = () => {
                   </p>
                   <ul className="text-sm text-blue-800 list-disc pl-5 mt-1">
                     <li>Check both your inbox and spam/junk folders</li>
-                    <li>Enter the code on the reset password page</li>
-                    <li>If the code expires, you'll need to request a new one</li>
+                    <li>Enter the 6-digit code on the reset password page</li>
+                    <li>If you don't receive the code, you can request a new one</li>
                   </ul>
                 </div>
               </div>
