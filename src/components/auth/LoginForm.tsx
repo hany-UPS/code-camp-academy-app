@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,26 @@ const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, user } = useAuth();
+  const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  // Check for authenticated user and redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      redirectBasedOnRole(user.role);
+    }
+  }, [isAuthenticated, user]);
+
+  const redirectBasedOnRole = (role: string) => {
+    console.log("Redirecting based on role:", role);
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    } else if (role === "teacher") {
+      navigate("/teacher-dashboard");
+    } else {
+      navigate("/student-dashboard");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,25 +41,20 @@ const LoginForm: React.FC = () => {
     try {
       await login(email, password);
       
-      // Wait for auth context to update with user information
+      // The redirection will be handled by the useEffect when auth state changes
+      // This is a backup in case the useEffect doesn't trigger
       setTimeout(() => {
         const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        console.log("Current user after login (backup check):", currentUser);
         
-        console.log("Current user after login:", currentUser);
-        
-        if (currentUser?.role === "admin") {
-          navigate("/admin-dashboard");
-        } else if (currentUser?.role === "teacher") {
-          navigate("/teacher-dashboard");
+        if (currentUser?.role) {
+          redirectBasedOnRole(currentUser.role);
         } else {
+          // If we still don't have the user role after login,
+          // redirect to student dashboard as fallback
           navigate("/student-dashboard");
         }
-        
-        toast({
-          title: "Login successful!",
-          description: `Welcome back!`,
-        });
-      }, 500); // Short delay to ensure auth context is updated
+      }, 1000);
     } catch (error) {
       console.error("Login error:", error);
       setIsSubmitting(false);
