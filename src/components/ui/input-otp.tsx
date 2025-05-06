@@ -38,10 +38,10 @@ const InputOTPSlot = React.forwardRef<
   // Add safety check to prevent accessing properties of undefined
   const slot = inputOTPContext?.slots?.[index] || {}
   
-  // Safely access properties with fallbacks
-  const char = slot.char as string | undefined || "";
-  const hasFakeCaret = Boolean(slot.hasFakeCaret);
-  const isActive = Boolean(slot.isActive);
+  // Use type assertion to handle properties safely
+  const char = (slot as any).char || "";
+  const hasFakeCaret = Boolean((slot as any).hasFakeCaret);
+  const isActive = Boolean((slot as any).isActive);
 
   return (
     <div

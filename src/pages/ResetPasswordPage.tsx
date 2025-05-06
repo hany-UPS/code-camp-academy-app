@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, KeyRound, Shield } from "lucide-react";
+import { Loader2, KeyRound, Shield, AlertTriangle } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
@@ -19,27 +18,51 @@ const ResetPasswordPage: React.FC = () => {
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  useEffect(() => {
-    // Check for error parameters in the URL hash
-    const hash = window.location.hash;
-    if (hash) {
-      const params = new URLSearchParams(hash.substring(1));
-      const error = params.get("error");
-      const errorDescription = params.get("error_description");
-      
-      if (error) {
-        setHasError(true);
-        setErrorMessage(errorDescription || "An error occurred with your password reset request.");
-        
-        toast({
-          title: "Reset link error",
-          description: errorDescription || "Your password reset link is invalid or has expired.",
-          variant: "destructive",
-        });
+  // Parse query parameters from the URL hash or search params
+  const getQueryParams = () => {
+    // Check for error in hash (Supabase often returns errors in the hash)
+    if (window.location.hash) {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      if (hashParams.get("error")) {
+        return {
+          error: hashParams.get("error"),
+          error_code: hashParams.get("error_code"),
+          error_description: hashParams.get("error_description")
+        };
       }
     }
-  }, []);
+    
+    // Otherwise check regular search params
+    const searchParams = new URLSearchParams(window.location.search);
+    return {
+      error: searchParams.get("error"),
+      error_code: searchParams.get("error_code"),
+      error_description: searchParams.get("error_description")
+    };
+  };
+
+  useEffect(() => {
+    const params = getQueryParams();
+    
+    if (params.error) {
+      setHasError(true);
+      const formattedError = params.error_description 
+        ? decodeURIComponent(params.error_description.replace(/\+/g, ' '))
+        : "Your password reset link is invalid or has expired.";
+      
+      setErrorMessage(formattedError);
+      
+      toast({
+        title: "Reset link error",
+        description: formattedError,
+        variant: "destructive",
+      });
+      
+      console.log("Password reset error:", params);
+    }
+  }, [location]);
 
   const resetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +105,7 @@ const ResetPasswordPage: React.FC = () => {
       } else {
         toast({
           title: "Success",
-          description: "Your password has been updated",
+          description: "Your password has been updated successfully",
         });
         
         // Redirect to login page after successful password reset
@@ -121,13 +144,13 @@ const ResetPasswordPage: React.FC = () => {
             {hasError ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-center p-4">
-                  <Shield className="h-12 w-12 text-amber-500" />
+                  <AlertTriangle className="h-12 w-12 text-amber-500" />
                 </div>
                 <p className="text-center text-sm text-gray-500 mb-4">
                   {errorMessage || "The password reset link has expired or is invalid. Please request a new one."}
                 </p>
                 <Button 
-                  onClick={() => navigate("/login", { state: { activeTab: "forgot" } })}
+                  onClick={() => navigate("/login")}
                   className="w-full bg-academy-orange hover:bg-orange-600 transition-colors"
                 >
                   Request New Link
