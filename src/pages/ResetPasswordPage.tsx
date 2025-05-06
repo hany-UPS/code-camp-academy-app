@@ -18,39 +18,25 @@ const ResetPasswordPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [sessionLoading, setSessionLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Parse query parameters from the URL hash or search params
-  const getQueryParams = () => {
-    // Check for error in hash (Supabase often returns errors in the hash)
-    if (window.location.hash) {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      if (hashParams.get("error")) {
-        return {
-          error: hashParams.get("error"),
-          error_code: hashParams.get("error_code"),
-          error_description: hashParams.get("error_description")
-        };
-      }
-    }
-    
-    // Otherwise check regular search params
-    const searchParams = new URLSearchParams(window.location.search);
-    return {
-      error: searchParams.get("error"),
-      error_code: searchParams.get("error_code"),
-      error_description: searchParams.get("error_description")
-    };
-  };
-
+  // Extract the access token from the URL hash
   useEffect(() => {
-    const params = getQueryParams();
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = hashParams.get("access_token");
+    const refreshToken = hashParams.get("refresh_token");
+    const type = hashParams.get("type");
+    const error = hashParams.get("error");
+    const errorDescription = hashParams.get("error_description");
     
-    if (params.error) {
+    // Handle errors from the hash
+    if (error) {
+      console.error("Password reset error:", error, errorDescription);
       setHasError(true);
-      const formattedError = params.error_description 
-        ? decodeURIComponent(params.error_description.replace(/\+/g, ' '))
+      const formattedError = errorDescription 
+        ? decodeURIComponent(errorDescription.replace(/\+/g, ' '))
         : "Your password reset link is invalid or has expired.";
       
       setErrorMessage(formattedError);
@@ -61,9 +47,48 @@ const ResetPasswordPage: React.FC = () => {
         variant: "destructive",
       });
       
-      console.log("Password reset error:", params);
+      setSessionLoading(false);
+      return;
     }
-  }, [location]);
+
+    // Set the session if we have an access token
+    if (accessToken && type === "recovery") {
+      // Set the Supabase session with the token
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || "",
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error("Session error:", error);
+          setHasError(true);
+          setErrorMessage("Unable to validate your reset token. Please request a new password reset link.");
+          
+          toast({
+            title: "Session error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          console.log("Session established successfully");
+        }
+        setSessionLoading(false);
+      });
+    } else {
+      // Check if there are error parameters in regular query params
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryError = searchParams.get("error");
+      
+      if (queryError) {
+        setHasError(true);
+        setErrorMessage("Your password reset link is invalid or has expired. Please request a new one.");
+      } else if (!accessToken) {
+        setHasError(true);
+        setErrorMessage("No reset token found. Please request a new password reset link.");
+      }
+      
+      setSessionLoading(false);
+    }
+  }, []);
 
   const resetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,8 +114,8 @@ const ResetPasswordPage: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // This will use the access token from the URL to update the user's password
-      const { error } = await supabase.auth.updateUser({ password });
+      // Update the user's password using the established session
+      const { data, error } = await supabase.auth.updateUser({ password });
       
       if (error) {
         toast({
@@ -142,7 +167,12 @@ const ResetPasswordPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {hasError ? (
+            {sessionLoading ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-academy-orange mb-4" />
+                <p className="text-sm text-gray-500">Verifying your reset token...</p>
+              </div>
+            ) : hasError ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-center p-4">
                   <AlertTriangle className="h-12 w-12 text-amber-500" />
