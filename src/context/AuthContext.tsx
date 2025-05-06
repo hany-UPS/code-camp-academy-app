@@ -64,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSupabaseSession(session);
         
         if (session?.user) {
@@ -73,10 +73,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profile = await fetchUserProfile(session.user.id);
             if (profile) {
               setUser(profile);
+              // Store user in localStorage for easier access
+              localStorage.setItem("user", JSON.stringify(profile));
             }
           }, 0);
         } else {
           setUser(null);
+          localStorage.removeItem("user");
         }
         
         setLoading(false);
@@ -93,6 +96,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const profile = await fetchUserProfile(session.user.id);
           if (profile) {
             setUser(profile);
+            // Store user in localStorage for easier access
+            localStorage.setItem("user", JSON.stringify(profile));
           }
         }
         
@@ -134,6 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Welcome back!",
         variant: "default",
       });
+      
+      return data;
     } catch (error: any) {
       console.error("Login error:", error);
       throw error;
@@ -151,6 +158,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(null);
       setSupabaseSession(null);
+      localStorage.removeItem("user");
       
       toast({
         title: "Logged out",

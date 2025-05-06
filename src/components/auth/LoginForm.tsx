@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -22,18 +23,29 @@ const LoginForm: React.FC = () => {
     try {
       await login(email, password);
       
-      // Redirect based on user role (handled in auth context)
-      const user = JSON.parse(localStorage.getItem("academyUser") || "{}");
-      if (user.role === "admin") {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/student-dashboard");
-      }
+      // Wait for auth context to update with user information
+      setTimeout(() => {
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        
+        console.log("Current user after login:", currentUser);
+        
+        if (currentUser?.role === "admin") {
+          navigate("/admin-dashboard");
+        } else if (currentUser?.role === "teacher") {
+          navigate("/teacher-dashboard");
+        } else {
+          navigate("/student-dashboard");
+        }
+        
+        toast({
+          title: "Login successful!",
+          description: `Welcome back!`,
+        });
+      }, 500); // Short delay to ensure auth context is updated
     } catch (error) {
       console.error("Login error:", error);
-      // Toast is already shown in the auth context
-    } finally {
       setIsSubmitting(false);
+      // Toast is already shown in the auth context
     }
   };
   
