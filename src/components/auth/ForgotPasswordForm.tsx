@@ -20,8 +20,7 @@ const ForgotPasswordForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
-      // Send password reset link via email - using the deployed URL
-      // Get current origin or use the deployed URL
+      // Get current origin for the redirect URL
       const siteUrl = window.location.origin;
       
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {

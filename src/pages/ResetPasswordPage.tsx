@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, KeyRound, Shield, AlertTriangle } from "lucide-react";
+import { Loader2, KeyRound, AlertTriangle } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { Link } from "react-router-dom";
@@ -150,7 +151,7 @@ const ResetPasswordPage: React.FC = () => {
                   {errorMessage || "The password reset link has expired or is invalid. Please request a new one."}
                 </p>
                 <Button 
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/login", { state: { activeTab: "forgot" } })}
                   className="w-full bg-academy-orange hover:bg-orange-600 transition-colors"
                 >
                   Request New Link
