@@ -19,9 +19,10 @@ const LoginForm: React.FC = () => {
   // Check for authenticated user and redirect if already logged in
   useEffect(() => {
     if (isAuthenticated && user) {
+      console.log("User is authenticated in useEffect. User data:", user);
       redirectBasedOnRole(user.role);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, navigate]);
 
   const redirectBasedOnRole = (role: string) => {
     console.log("Redirecting based on role:", role);
@@ -39,6 +40,7 @@ const LoginForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Submitting login form for:", email);
       await login(email, password);
       
       // The redirection will be handled by the useEffect when auth state changes
@@ -52,6 +54,7 @@ const LoginForm: React.FC = () => {
         } else {
           // If we still don't have the user role after login,
           // redirect to student dashboard as fallback
+          console.log("No role found in user data. Redirecting to student dashboard by default.");
           navigate("/student-dashboard");
         }
       }, 1000);

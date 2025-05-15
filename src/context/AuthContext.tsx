@@ -43,6 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch user profile data from the profiles table
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching user profile for ID:", userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -54,6 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
       
+      console.log("Profile data fetched:", data);
       return data as UserProfile;
     } catch (error) {
       console.error("Error in fetchUserProfile:", error);
@@ -64,40 +66,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
+        console.log("Auth state changed. Event:", event);
         setSupabaseSession(session);
         
         if (session?.user) {
-          // Fetch the user profile after a short delay to avoid recursion issues
+          console.log("User authenticated:", session.user.id);
+          // Use setTimeout to avoid potential infinite loops with Supabase client
           setTimeout(async () => {
             const profile = await fetchUserProfile(session.user.id);
             if (profile) {
+              console.log("Setting user profile:", profile);
               setUser(profile);
               // Store user in localStorage for easier access
               localStorage.setItem("user", JSON.stringify(profile));
+            } else {
+              console.warn("No profile found for user ID:", session.user.id);
+              // Create a default profile if none exists
+              const defaultProfile: UserProfile = {
+                id: session.user.id,
+                name: session.user.email?.split('@')[0] || null,
+                email: session.user.email,
+                role: "student" // Default role
+              };
+              setUser(defaultProfile);
+              localStorage.setItem("user", JSON.stringify(defaultProfile));
             }
+            setLoading(false);
           }, 0);
         } else {
           setUser(null);
           localStorage.removeItem("user");
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
     
     // Check current session
     const initializeAuth = async () => {
       try {
+        console.log("Initializing auth...");
         const { data: { session } } = await supabase.auth.getSession();
         setSupabaseSession(session);
         
         if (session?.user) {
+          console.log("Found existing session for user:", session.user.id);
           const profile = await fetchUserProfile(session.user.id);
           if (profile) {
+            console.log("Setting user profile from session:", profile);
             setUser(profile);
-            // Store user in localStorage for easier access
             localStorage.setItem("user", JSON.stringify(profile));
+          } else {
+            console.warn("No profile found for existing session user:", session.user.id);
+            // Try to get from localStorage as fallback
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              const parsedUser = JSON.parse(storedUser);
+              console.log("Using stored user data:", parsedUser);
+              setUser(parsedUser);
+            } else {
+              // Create default profile if nothing exists
+              const defaultProfile: UserProfile = {
+                id: session.user.id,
+                name: session.user.email?.split('@')[0] || null,
+                email: session.user.email,
+                role: "student" // Default role
+              };
+              setUser(defaultProfile);
+              localStorage.setItem("user", JSON.stringify(defaultProfile));
+            }
           }
         }
         
@@ -119,6 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     
     try {
+      console.log("Attempting login for:", email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -139,6 +177,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: "Welcome back!",
         variant: "default",
       });
+
+      if (data.user) {
+        console.log("Login successful for user ID:", data.user.id);
+        // Fetch profile immediately to ensure we have the data
+        const profile = await fetchUserProfile(data.user.id);
+        if (profile) {
+          console.log("Setting user profile after login:", profile);
+          setUser(profile);
+          localStorage.setItem("user", JSON.stringify(profile));
+        } else {
+          console.warn("No profile found after login for user:", data.user.id);
+        }
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       throw error;
