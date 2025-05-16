@@ -27,11 +27,11 @@ const LoginForm: React.FC = () => {
   const redirectBasedOnRole = (role: string) => {
     console.log("Redirecting based on role:", role);
     if (role === "admin") {
-      navigate("/admin-dashboard");
+      navigate("/admin-dashboard", { replace: true });
     } else if (role === "teacher") {
-      navigate("/teacher-dashboard");
+      navigate("/teacher-dashboard", { replace: true });
     } else {
-      navigate("/student-dashboard");
+      navigate("/student-dashboard", { replace: true });
     }
   };
 
@@ -43,8 +43,7 @@ const LoginForm: React.FC = () => {
       console.log("Submitting login form for:", email);
       await login(email, password);
       
-      // The redirection will be handled by the useEffect when auth state changes
-      // This is a backup in case the useEffect doesn't trigger
+      // Adding a small delay to ensure auth state is updated
       setTimeout(() => {
         const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
         console.log("Current user after login (backup check):", currentUser);
@@ -52,16 +51,25 @@ const LoginForm: React.FC = () => {
         if (currentUser?.role) {
           redirectBasedOnRole(currentUser.role);
         } else {
-          // If we still don't have the user role after login,
-          // redirect to student dashboard as fallback
-          console.log("No role found in user data. Redirecting to student dashboard by default.");
-          navigate("/student-dashboard");
+          console.log("No role found in user data after successful login");
+          // If we don't have user role even after successful login, try to get it from auth context
+          if (user?.role) {
+            redirectBasedOnRole(user.role);
+          } else {
+            console.log("Fallback: Redirecting to student dashboard");
+            // Last resort, redirect to student dashboard
+            navigate("/student-dashboard", { replace: true });
+          }
         }
-      }, 1000);
+      }, 500);
     } catch (error) {
       console.error("Login error:", error);
       setIsSubmitting(false);
-      // Toast is already shown in the auth context
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Failed to login",
+        variant: "destructive",
+      });
     }
   };
   

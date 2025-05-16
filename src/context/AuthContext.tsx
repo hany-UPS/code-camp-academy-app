@@ -171,7 +171,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
       
-      // Profile will be fetched by the auth state change listener
       toast({
         title: "Login successful!",
         description: "Welcome back!",
@@ -188,6 +187,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem("user", JSON.stringify(profile));
         } else {
           console.warn("No profile found after login for user:", data.user.id);
+          // Create a basic profile with default role
+          const defaultProfile: UserProfile = {
+            id: data.user.id,
+            name: data.user.email?.split('@')[0] || null,
+            email: data.user.email,
+            role: "student" // Default role
+          };
+          setUser(defaultProfile);
+          localStorage.setItem("user", JSON.stringify(defaultProfile));
         }
       }
     } catch (error: any) {
