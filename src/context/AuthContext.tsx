@@ -52,6 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Error fetching user profile:", error);
+        console.log("Error details:", error.message, error.details);
         return null;
       }
       
@@ -163,6 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
+        console.error("Login error from Supabase:", error);
         toast({
           title: "Login failed",
           description: error.message,

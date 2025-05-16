@@ -58,24 +58,33 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onBack, onVeri
     setIsSubmitting(true);
 
     try {
+      console.log("Verifying OTP code:", otp);
       // Here we would normally verify the OTP with Supabase
-      // For demonstration, we're just simulating success
-      // In a real implementation, you would call a Supabase function or edge function
+      // For demonstration, we're simulating a verification process
       
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      toast({
-        title: "Code verified",
-        description: "Your verification code is correct",
-      });
-      
-      onVerified();
+      // For demo purposes, accept any 6-digit code
+      // In production, you would validate against a stored code from your database
+      if (otp.length === 6 && /^\d+$/.test(otp)) {
+        toast({
+          title: "Code verified",
+          description: "Your verification code is correct",
+        });
+        onVerified();
+      } else {
+        toast({
+          title: "Incorrect code",
+          description: "The code you entered is invalid. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error("OTP verification error:", error);
       toast({
         title: "Verification failed",
-        description: "The code you entered is invalid or has expired",
+        description: "An error occurred while verifying your code",
         variant: "destructive",
       });
     } finally {
@@ -87,6 +96,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onBack, onVeri
     setIsResending(true);
     
     try {
+      console.log("Resending OTP for email:", email);
       // In real implementation, you would call your Supabase function to resend the OTP
       // For now, we're just simulating the API call
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -110,7 +120,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onBack, onVeri
         title: "Code resent",
         description: `A new verification code has been sent to ${email}`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resending OTP:", error);
       toast({
         title: "Failed to resend code",
@@ -148,6 +158,7 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({ email, onBack, onVeri
               value={otp}
               onChange={setOtp}
               disabled={isSubmitting}
+              pattern="\d*"
               render={({ slots }) => (
                 <InputOTPGroup>
                   {slots.map((slot, index) => (

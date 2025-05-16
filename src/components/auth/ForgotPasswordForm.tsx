@@ -25,9 +25,9 @@ const ForgotPasswordForm: React.FC = () => {
     setIsSubmitting(true);
     
     try {
+      console.log("Sending password reset email to:", email);
       // In a real implementation, you would call a custom edge function
       // that sends an OTP to the user's email instead of using the default Supabase flow
-      // For now, we'll use the standard resetPasswordForEmail but adapt the UI
       
       // Get current origin for the redirect URL
       const siteUrl = window.location.origin;
@@ -39,6 +39,7 @@ const ForgotPasswordForm: React.FC = () => {
       });
       
       if (error) {
+        console.error("Password reset error:", error);
         toast({
           title: "Error",
           description: error.message,
@@ -65,6 +66,7 @@ const ForgotPasswordForm: React.FC = () => {
   };
 
   const handleVerified = () => {
+    console.log("OTP verified, proceeding to password reset form");
     setIsOtpVerified(true);
   };
 
@@ -92,11 +94,16 @@ const ForgotPasswordForm: React.FC = () => {
     setIsResetting(true);
     
     try {
-      // In a real implementation with OTP flow, you would call your custom function
-      // to update the password using the verified OTP session
+      console.log("Resetting password for user with email:", email);
       
-      // For demonstration purposes, we'll just show a success message
-      // and redirect to login
+      // In a real implementation with OTP flow, you would call your custom function
+      // to update the password in the database
+      
+      // For Supabase, you can use updateUser once the user is authenticated after OTP verification
+      // This would typically be done via a custom edge function that verifies the OTP
+      // and then calls the admin API to update the password
+      
+      // For this demonstration, we'll simulate the process with a delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast({
@@ -107,12 +114,12 @@ const ForgotPasswordForm: React.FC = () => {
       // Redirect to login page after successful password reset
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
+      }, 1500);
     } catch (error: any) {
       console.error("Password update error:", error);
       toast({
         title: "Error",
-        description: "Failed to update password",
+        description: "Failed to update password: " + error.message,
         variant: "destructive",
       });
     } finally {

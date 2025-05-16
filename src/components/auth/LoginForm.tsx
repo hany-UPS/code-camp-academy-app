@@ -49,11 +49,13 @@ const LoginForm: React.FC = () => {
         console.log("Current user after login (backup check):", currentUser);
         
         if (currentUser?.role) {
+          console.log("Redirecting based on stored role:", currentUser.role);
           redirectBasedOnRole(currentUser.role);
         } else {
           console.log("No role found in user data after successful login");
           // If we don't have user role even after successful login, try to get it from auth context
           if (user?.role) {
+            console.log("Using role from auth context:", user.role);
             redirectBasedOnRole(user.role);
           } else {
             console.log("Fallback: Redirecting to student dashboard");
