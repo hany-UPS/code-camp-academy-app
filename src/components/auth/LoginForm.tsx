@@ -1,137 +1,101 @@
 
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { loginSchema, LoginFormValues, FormMode } from "./types";
 
-const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { login, user, isAuthenticated } = useAuth();
+interface LoginFormProps {
+  onModeChange: (mode: FormMode) => void;
+}
+
+export function LoginForm({ onModeChange }: LoginFormProps) {
+  const { signIn } = useAuth();
   const navigate = useNavigate();
-
-  // Check for authenticated user and redirect if already logged in
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log("User is authenticated in useEffect. User data:", user);
-      redirectBasedOnRole(user.role);
-    }
-  }, [isAuthenticated, user, navigate]);
-
-  const redirectBasedOnRole = (role: string) => {
-    console.log("Redirecting based on role:", role);
-    if (role === "admin") {
-      navigate("/admin-dashboard", { replace: true });
-    } else if (role === "teacher") {
-      navigate("/teacher-dashboard", { replace: true });
-    } else {
-      navigate("/student-dashboard", { replace: true });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    try {
-      console.log("Submitting login form for:", email);
-      await login(email, password);
-      
-      // Adding a small delay to ensure auth state is updated
-      setTimeout(() => {
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-        console.log("Current user after login (backup check):", currentUser);
-        
-        if (currentUser?.role) {
-          console.log("Redirecting based on stored role:", currentUser.role);
-          redirectBasedOnRole(currentUser.role);
-        } else {
-          console.log("No role found in user data after successful login");
-          // If we don't have user role even after successful login, try to get it from auth context
-          if (user?.role) {
-            console.log("Using role from auth context:", user.role);
-            redirectBasedOnRole(user.role);
-          } else {
-            console.log("Fallback: Redirecting to student dashboard");
-            // Last resort, redirect to student dashboard
-            navigate("/student-dashboard", { replace: true });
-          }
-        }
-      }, 500);
-    } catch (error) {
-      console.error("Login error:", error);
-      setIsSubmitting(false);
-      toast({
-        title: "Login failed",
-        description: error instanceof Error ? error.message : "Failed to login",
-        variant: "destructive",
-      });
-    }
-  };
   
-  return (
-    <Card className="w-[350px] sm:w-[400px] shadow-lg animate-fade-in">
-      <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>
-          Enter your credentials to access your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="rounded-md"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="rounded-md"
-            />
-          </div>
-          <div className="text-sm text-gray-500">
-            <p>Demo accounts:</p>
-            <p>Admin: admin@example.com / password123</p>
-            <p>Student: student@example.com / password123</p>
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full bg-academy-orange hover:bg-orange-600 transition-colors"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-                Logging in...
-              </>
-            ) : (
-              "Log In"
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
-  );
-};
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-export default LoginForm;
+  const handleLogin = async (data: LoginFormValues) => {
+    const { error } = await signIn(data.email, data.password);
+    if (!error) {
+      navigate("/dashboard");
+    }
+  };
+
+  return (
+    <>
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900">Welcome Back!</h2>
+        <p className="text-sm text-gray-600 mt-2">Sign in to your account</p>
+      </div>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="••••••••" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <div className="pt-2">
+            <Button type="submit" className="w-full bg-academy-orange hover:bg-orange-600">
+              Sign In
+            </Button>
+          </div>
+        </form>
+      </Form>
+      
+      <div className="mt-6 text-center text-sm">
+        <button
+          type="button"
+          onClick={() => onModeChange("reset")}
+          className="text-academy-blue hover:underline"
+        >
+          Forgot password?
+        </button>
+      </div>
+      
+      <div className="mt-2 text-center text-sm">
+        <span className="text-gray-600">Don't have an account?</span>{" "}
+        <button
+          type="button"
+          onClick={() => onModeChange("register")}
+          className="text-academy-blue hover:underline font-medium"
+        >
+          Sign up
+        </button>
+      </div>
+    </>
+  );
+}

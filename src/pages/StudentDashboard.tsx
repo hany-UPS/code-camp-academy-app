@@ -1,392 +1,332 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import CourseCard from "@/components/courses/CourseCard";
-import { toast } from "@/hooks/use-toast";
-import Leaderboard from "@/components/rankings/Leaderboard";
-import StudentRankCard from "@/components/rankings/StudentRankCard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { CourseTimeline } from "@/types/supabase-extension";
-import CourseTimelineDisplay from "@/components/timeline/CourseTimelineDisplay";
-import { StudentProgressService } from "@/services/StudentProgressService";
-import { RankingService } from "@/services/RankingService";
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { LeaderboardCard } from "@/components/dashboard/LeaderboardCard";
+import { ProgressGraph } from "@/components/dashboard/ProgressGraph";
+import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard";
+import { CourseCard } from "@/components/courses/CourseCard";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase, ensureValidRole } from "@/lib/supabase";
+import { Course, Profile } from "@/types/supabase";
+import { Award, BookOpen, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { Link } from "react-router-dom";
 
-interface Course {
+import { Database } from '@/types/supabase';
+
+type SupabaseStudentCourse = Database['public']['Tables']['student_courses']['Row'];
+
+type StudentCourse = SupabaseStudentCourse & {
+  hide_new_sessions?: boolean;
+};
+
+type SubscriptionData = {
   id: string;
-  title: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  progress?: {
-    completed: number;
-    total: number;
-  };
-  activeSessions?: number;
-}
+  remaining_sessions: number;
+  total_sessions: number;
+  plan_duration_months: number;
+  warning: boolean;
+  course_title: string;
+};
 
-interface Session {
-  id: string;
-  title: string;
-  course_id: string;
-  is_active: boolean;
-  video_url: string;
-  sequence_order: number;
-  description: string | null;
-}
+const StudentDashboard = () => {
+  const { profile, user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [courses, setCourses] = useState<{course: Course, studentCourse: StudentCourse}[]>([]);
+  const [topStudents, setTopStudents] = useState<Profile[]>([]);
+  const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dataFetched, setDataFetched] = useState(false);
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    completedCourses: 0,
+    completedSessions: 0,
+    totalPoints: 0,
+  });
 
-interface StudentRank {
-  student_id: string;
-  name: string | null;
-  email: string | null;
-  student_code: string | null;
-  total_points: number;
-  sessions_completed: number;
-  quizzes_completed: number;
-  rank: number;
-}
-
-const StudentDashboard: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [assignedCourses, setAssignedCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [topStudents, setTopStudents] = useState<StudentRank[]>([]);
-  const [currentStudentRank, setCurrentStudentRank] = useState<StudentRank | null>(null);
-  const [courseTimelines, setCourseTimelines] = useState<CourseTimeline[]>([]);
-  const [courseData, setCourseData] = useState<Record<string, { title: string; description: string | null }>>({});
-  
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
+    console.log("StudentDashboard useEffect triggered");
+    console.log("Auth loading:", authLoading);
+    console.log("User:", user);
+    console.log("Profile:", profile);
+    console.log("Data fetched:", dataFetched);
+
+    if (authLoading || dataFetched) {
+      console.log("Skipping fetch - auth loading or data already fetched");
       return;
     }
-    
-    if (user && user.role !== "student") {
-      if (user.role === "admin") {
-        navigate("/admin-dashboard");
-      } else if (user.role === "teacher") {
-        navigate("/teacher-dashboard");
-      }
+
+    if (!user) {
+      console.log("No user found");
+      setError("Please sign in to view your dashboard");
+      setLoading(false);
       return;
     }
-    
-    const fetchStudentData = async () => {
-      if (!user) return;
-      
+
+    if (!profile) {
+      console.log("No profile found, waiting...");
+      return;
+    }
+
+    const fetchDashboardData = async () => {
       try {
+        console.log("Starting dashboard data fetch for user:", user.id);
         setLoading(true);
+        setError(null);
         
-        await RankingService.initializeStudentRanking(user.id);
+        console.log("Fetching enrolled courses for profile:", profile.id);
+        const { data: enrolledCoursesData, error: enrolledError } = await supabase
+          .from('student_courses')
+          .select(`
+            *,
+            course:courses(*)
+          `)
+          .eq('student_id', profile.id);
         
-        const { data: assignments, error: assignmentsError } = await supabase
-          .from("course_assignments")
-          .select("course_id")
-          .eq("student_id", user.id);
-          
-        if (assignmentsError) {
-          console.error("Error fetching assignments:", assignmentsError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch your course assignments",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
+        if (enrolledError) {
+          console.error("Error fetching enrolled courses:", enrolledError);
+          throw enrolledError;
         }
         
-        if (!assignments || assignments.length === 0) {
-          setAssignedCourses([]);
-          setLoading(false);
-          return;
-        }
+        console.log("Enrolled courses data:", enrolledCoursesData);
         
-        const courseIds = assignments.map(a => a.course_id);
+        const formattedCourses = (enrolledCoursesData || [])
+          .filter(data => data.course)
+          .map(data => ({
+            course: data.course as Course,
+            studentCourse: {
+              id: data.id,
+              student_id: data.student_id,
+              course_id: data.course_id,
+              progress: data.progress || 0,
+              assigned_at: data.assigned_at,
+              assigned_by: data.assigned_by,
+              completed_at: data.completed_at,
+              hide_new_sessions: data.hide_new_sessions || false,
+            } as StudentCourse
+          }));
         
-        const { data: coursesData, error: coursesError } = await supabase
-          .from("courses")
-          .select("*")
-          .in("id", courseIds);
-          
-        if (coursesError) {
-          console.error("Error fetching courses:", coursesError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch course details",
-            variant: "destructive",
-          });
-          setLoading(false);
-          return;
-        }
+        setCourses(formattedCourses);
         
-        if (coursesData) {
-          const courseDataMap: Record<string, { title: string; description: string | null }> = {};
-          coursesData.forEach(course => {
-            courseDataMap[course.id] = {
-              title: course.title,
-              description: course.description
-            };
-          });
-          setCourseData(courseDataMap);
-        }
-        
-        const { data: sessionsData, error: sessionsError } = await supabase
-          .from("sessions")
-          .select("*")
-          .in("course_id", courseIds);
-          
-        if (sessionsError) {
-          console.error("Error fetching sessions:", sessionsError);
-        }
-        
-        const { data: progressData, error: progressError } = await supabase
-          .from("session_progress")
-          .select("session_id")
-          .eq("student_id", user.id);
-          
-        if (progressError) {
-          console.error("Error fetching progress:", progressError);
-        }
-        
-        const sessionsByCourse: Record<string, Session[]> = {};
-        sessionsData?.forEach(session => {
-          if (!sessionsByCourse[session.course_id]) {
-            sessionsByCourse[session.course_id] = [];
-          }
-          sessionsByCourse[session.course_id].push({
-            ...session,
-            is_active: session.is_active !== undefined ? session.is_active : true
-          });
+        setStats({
+          totalCourses: formattedCourses.length,
+          completedCourses: formattedCourses.filter(c => 
+            c.course.total_sessions > 0 && c.studentCourse.progress >= c.course.total_sessions
+          ).length,
+          completedSessions: formattedCourses.reduce((acc, curr) => 
+            acc + (curr.studentCourse.progress || 0), 0
+          ),
+          totalPoints: profile.total_points || 0,
         });
         
-        const completedSessionIds = new Set(progressData?.map(p => p.session_id) || []);
-        
-        const coursesWithProgress = coursesData?.map(course => {
-          const sessions = sessionsByCourse[course.id] || [];
-          const activeSessions = sessions.filter(s => s.is_active);
-          const completedCount = activeSessions.filter(s => completedSessionIds.has(s.id)).length;
-          
-          return {
-            id: course.id,
-            title: course.title,
-            description: course.description,
-            thumbnail_url: course.thumbnail_url,
-            activeSessions: activeSessions.length,
-            progress: {
-              completed: completedCount,
-              total: activeSessions.length || 1
-            }
-          };
-        }) || [];
-        
-        setAssignedCourses(coursesWithProgress);
-        
-        const { data: timelineData, error: timelineError } = await supabase
-          .from("course_timeline")
-          .select("*")
-          .eq("student_id", user.id);
-          
-        if (timelineError) {
-          console.error("Error fetching course timeline:", timelineError);
-        } else if (timelineData) {
-          const typedTimelineData: CourseTimeline[] = timelineData.map(item => ({
-            ...item,
-            status: item.status as 'not_started' | 'in_progress' | 'sessions_completed' | 'completed'
-          }));
-          setCourseTimelines(typedTimelineData);
-        }
-        
-        const topRankedStudents = await RankingService.getTopStudents(10);
-        setTopStudents(topRankedStudents);
-        
-        const currentStudent = topRankedStudents.find(s => s.student_id === user.id);
-        
-        if (currentStudent) {
-          setCurrentStudentRank(currentStudent);
+        // Fetch subscription data
+        console.log("Fetching subscription data for profile:", profile.id);
+        const { data: subscriptionData, error: subscriptionError } = await supabase
+          .from('student_course_subscription')
+          .select(`
+            *,
+            student_course:student_courses(
+              course:courses(title)
+            )
+          `)
+          .eq('student_course.student_id', profile.id);
+
+        if (subscriptionError) {
+          console.error("Error fetching subscriptions:", subscriptionError);
         } else {
-          const { data: userRankData } = await supabase
-            .from("student_rankings")
-            .select(`
-              student_id,
-              total_points, 
-              sessions_completed,
-              quizzes_completed,
-              profiles:student_id (name, email, student_code)
-            `)
-            .eq("student_id", user.id)
-            .maybeSingle();
-            
-          if (userRankData) {
-            const { count: higherRankedCount } = await supabase
-              .from("student_rankings")
-              .select("*", { count: "exact", head: true })
-              .gt("total_points", userRankData.total_points);
-              
-            setCurrentStudentRank({
-              student_id: userRankData.student_id,
-              name: userRankData.profiles?.name,
-              email: userRankData.profiles?.email,
-              student_code: userRankData.profiles?.student_code,
-              total_points: userRankData.total_points,
-              sessions_completed: userRankData.sessions_completed,
-              quizzes_completed: userRankData.quizzes_completed,
-              rank: (higherRankedCount || 0) + 1
-            });
-          }
+          console.log("Subscription data:", subscriptionData);
+          const formattedSubscriptions = (subscriptionData || [])
+            .filter(sub => sub.student_course?.course)
+            .map(sub => ({
+              id: sub.id,
+              remaining_sessions: sub.remaining_sessions,
+              total_sessions: sub.total_sessions,
+              plan_duration_months: sub.plan_duration_months,
+              warning: sub.warning,
+              course_title: sub.student_course.course.title
+            }));
+          setSubscriptions(formattedSubscriptions);
         }
         
-        setLoading(false);
+        console.log("Fetching top students");
+        const { data: studentsData, error: studentsError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'student')
+          .order('total_points', { ascending: false })
+          .limit(5);
+        
+        if (studentsError) {
+          console.error("Error fetching top students:", studentsError);
+        } else {
+          console.log("Top students data:", studentsData);
+          const typedStudents = (studentsData || []).map(student => ({
+            ...student,
+            role: ensureValidRole(student.role)
+          }));
+          setTopStudents(typedStudents);
+        }
+        
+        setDataFetched(true);
+        console.log("Dashboard data fetch completed successfully");
+        
       } catch (error) {
-        console.error("Error fetching student data:", error);
+        console.error('Error fetching dashboard data:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setError(`Failed to load dashboard: ${errorMessage}`);
         toast({
           title: "Error",
-          description: "Failed to load your data",
+          description: "Failed to load dashboard data",
           variant: "destructive",
         });
+      } finally {
         setLoading(false);
       }
     };
     
-    fetchStudentData();
-  }, [user, isAuthenticated, navigate]);
+    fetchDashboardData();
+  }, [profile, user, authLoading, dataFetched, toast]);
   
-  if (loading) {
+  const progressData = courses.map(({ course, studentCourse }) => ({
+    name: course.title.length > 15 ? course.title.substring(0, 15) + '...' : course.title,
+    completed: studentCourse.progress || 0,
+    total: course.total_sessions || 0,
+  }));
+
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <p>Loading your dashboard...</p>
-        </main>
-        <Footer />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-t-academy-blue border-r-transparent border-b-academy-orange border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-gray-600">Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
-  
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="text-center">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Dashboard Error</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <Button onClick={() => {
+              setError(null);
+              setDataFetched(false);
+              setLoading(true);
+            }}>
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">My Learning Dashboard</h1>
+    <DashboardLayout>
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold mb-1">Welcome back, {profile?.name}!</h1>
+              <p className="text-muted-foreground">Here's an overview of your learning progress</p>
+            </div>
+             <div className="px-4 py-2">
+              <Link to="/StudentCertificatespage">
+                <button
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+                >
+                  <Award className="w-4 h-4" />
+                  My Certificates
+                </button>
+              </Link>
+              </div>
+
+        </div>
         
-        <Tabs defaultValue="courses" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="courses">My Courses</TabsTrigger>
-            <TabsTrigger value="timeline">Learning Path</TabsTrigger>
-            <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="courses">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-              <div className="lg:col-span-1">
-                {currentStudentRank && (
-                  <StudentRankCard
-                    rank={currentStudentRank.rank}
-                    totalPoints={currentStudentRank.total_points}
-                    sessionsCompleted={currentStudentRank.sessions_completed}
-                    quizzesCompleted={currentStudentRank.quizzes_completed}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatsCard 
+            title="Total Courses"
+            value={stats.totalCourses}
+            icon={BookOpen}
+            colorVariant="blue"
+          />
+          <StatsCard 
+            title="Completed Courses"
+            value={stats.completedCourses}
+            icon={CheckCircle}
+            colorVariant="green"
+          />
+          <StatsCard 
+            title="Completed Sessions"
+            value={stats.completedSessions}
+            icon={Clock}
+            colorVariant="orange"
+          />
+          <StatsCard 
+            title="Total Points"
+            value={stats.totalPoints}
+            icon={Award}
+            colorVariant="purple"
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <ProgressGraph 
+            data={progressData}
+            className="lg:col-span-2"
+          />
+          <LeaderboardCard students={topStudents} />
+        </div>
+
+        {/* Add subscription status section */}
+        <SubscriptionCard subscriptions={subscriptions} />
+        
+        <div>
+          <h2 className="text-xl font-bold mb-4">Your Courses</h2>
+          {courses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.map(({ course, studentCourse }) => (
+                <div key={course.id} className="relative">
+                  <CourseCard 
+                    course={course}
+                    studentCourse={studentCourse}
                   />
-                )}
-              </div>
-              
-              <div className="lg:col-span-3">
-                {assignedCourses.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {assignedCourses.map((course) => (
-                      <CourseCard 
-                        key={course.id} 
-                        course={course}
-                        progress={course.progress}
-                        activeSessions={course.activeSessions}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="bg-gray-50 rounded-lg p-8 text-center">
-                    <h3 className="text-xl font-medium text-gray-700 mb-2">
-                      No courses assigned yet
-                    </h3>
-                    <p className="text-gray-500">
-                      Your instructor will assign courses to you soon.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="timeline">
-            <CourseTimelineDisplay 
-              courseTimelines={courseTimelines}
-              courseData={courseData}
-            />
-          </TabsContent>
-          
-          <TabsContent value="leaderboard">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-              <div className="lg:col-span-1">
-                <Card className="bg-purple-50 border-0 shadow">
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-bold text-purple-900 mb-4">Ranking System</h3>
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-purple-800">How to earn points:</h4>
-                        <ul className="mt-2 text-sm space-y-2">
-                          <li className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                            <span>10 points for each completed session</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                            <span>2 points for each correct quiz answer</span>
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-purple-800">Reaching top ranks:</h4>
-                        <ul className="mt-2 text-sm space-y-2">
-                          <li className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                            <span>Complete all sessions in your courses</span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-purple-500"></div>
-                            <span>Take quizzes and answer questions correctly</span>
-                          </li>
-                        </ul>
-                      </div>
-                      
-                      {currentStudentRank && (
-                        <div className="mt-6 pt-4 border-t border-purple-200">
-                          <p className="text-center text-purple-800 font-semibold">Your Current Rank</p>
-                          <p className="text-center text-3xl font-bold text-purple-900">#{currentStudentRank.rank}</p>
-                          <p className="text-center text-purple-700 mt-1">{currentStudentRank.total_points} Points</p>
-                          {currentStudentRank.student_code && (
-                            <p className="text-center text-purple-700 mt-1">Student ID: {currentStudentRank.student_code}</p>
-                          )}
+                  {studentCourse.hide_new_sessions && (
+                    <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                      <div className="text-center text-white p-4">
+                        <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <AlertCircle className="w-6 h-6" />
                         </div>
-                      )}
+                        <h3 className="font-semibold mb-2">Course Temporarily Locked</h3>
+                        <p className="text-sm text-white/80">
+                          This course has been temporarily restricted by an administrator. 
+                          Please contact your instructor for more information.
+                        </p>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="lg:col-span-3">
-                <Leaderboard 
-                  rankings={topStudents} 
-                  currentUserId={user?.id} 
-                />
-              </div>
+                  )}
+                </div>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      <Footer />
-    </div>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <h3 className="font-medium text-gray-900 mb-1">No courses yet</h3>
+              <p className="text-gray-600">
+                You are not enrolled in any courses yet. Browse available courses to get started.
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+    </DashboardLayout>
   );
 };
 

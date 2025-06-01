@@ -1,519 +1,404 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import CourseCard from "@/components/courses/CourseCard";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserCircle, CheckCircle, FileEdit, Trophy, UserPlus } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import AddCourseForm from "@/components/courses/AddCourseForm";
-import AssignCourseForm from "@/components/courses/AssignCourseForm";
-import MultiAssignCourseForm from "@/components/courses/MultiAssignCourseForm";
-import SessionsManager from "@/components/courses/SessionsManager";
-import StudentsRankingTable from "@/components/students/StudentsRankingTable";
-import QuizForm from "@/components/courses/QuizForm";
+
+import { useEffect, useState } from "react";
+import { DashboardLayout } from "@/components/DashboardLayout";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { AdminCourseCard } from "@/components/courses/CourseCardWithAdmin";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase, ensureValidRole } from "@/lib/supabase";
+import { Course, Profile } from "@/types/supabase";
+import { Book, Users, Plus, UserPlus } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
 
-import type { StudentRank as ImportedStudentRank } from "@/types/supabase-extension";
+// Course form schema
+const courseFormSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  description: z.string().optional(),
+});
 
-interface Course {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnail_url: string | null;
-  created_at: string;
-  sessions: Array<{
-    id: string;
-    is_active: boolean;
-  }>;
-  activeSessions: number;
-}
+type CourseFormValues = z.infer<typeof courseFormSchema>;
 
-interface SessionData {
-  id: string;
-  course_id: string;
-  title: string;
-  description: string | null;
-  video_url: string;
-  sequence_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-interface Student {
-  id: string;
-  name: string | null;
-  email: string | null;
-  phone: string | null;
-  assignedCourses: string[];
-}
-
-type StudentRank = ImportedStudentRank & {
-  rank: number;
-};
-
-interface SessionProgress {
-  session_id: string;
-  student_id: string;
-  completed_at: string;
-}
-
-const AdminDashboard: React.FC = () => {
-  const { user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+const AdminDashboard = () => {
+  const { profile, user, isLoading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [courseAssignments, setCourseAssignments] = useState<any[]>([]);
-  const [sessionProgress, setSessionProgress] = useState<SessionProgress[]>([]);
-  const [studentRankings, setStudentRankings] = useState<StudentRank[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
-  const [showAddCourse, setShowAddCourse] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<{id: string; name: string; assignedCourses: string[]} | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<{id: string; title: string} | null>(null);
-  const [selectedSession, setSelectedSession] = useState<{id: string; title: string} | null>(null);
-  const [showMultiAssign, setShowMultiAssign] = useState(false);
-  
+  const [students, setStudents] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
+  const [openCourseDialog, setOpenCourseDialog] = useState(false);
+  const [totalGroups, setTotalGroups] = useState(0);
+
+  // Course form setup
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseFormSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+    },
+  });
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate("/login");
+    console.log("AdminDashboard useEffect triggered");
+    console.log("Auth loading:", authLoading);
+    console.log("User:", user);
+    console.log("Profile:", profile);
+    console.log("Data fetched:", dataFetched);
+
+    // Don't fetch if auth is still loading or data already fetched
+    if (authLoading || dataFetched) {
+      console.log("Skipping fetch - auth loading or data already fetched");
       return;
     }
-    
-    if (user?.role !== "admin") {
-      navigate("/student-dashboard");
+
+    // If no user or profile, wait
+    if (!user || !profile) {
+      console.log("No user or profile found, waiting...");
       return;
     }
-    
-    fetchData();
-  }, [user, isAuthenticated, navigate]);
-  
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const { data: coursesData, error: coursesError } = await supabase
-        .from("courses")
-        .select("*");
+
+    const fetchAdminDashboardData = async () => {
+      try {
+        console.log("Starting admin dashboard data fetch for profile:", profile.id);
+        setLoading(true);
         
-      if (coursesError) {
-        console.error("Error fetching courses:", coursesError);
+        // Fetch courses created by this admin
+        console.log("Fetching admin courses...");
+        const { data: adminCoursesData, error: adminCoursesError } = await supabase
+          .from('admin_courses')
+          .select(`
+            course:courses(*)
+          `)
+          .eq('admin_id', profile.id);
+        
+        if (adminCoursesError) {
+          console.error("Error fetching admin courses:", adminCoursesError);
+          throw adminCoursesError;
+        }
+        
+        console.log("Admin courses data:", adminCoursesData);
+        const adminCourses = (adminCoursesData || [])
+          .filter(item => item.course)
+          .map(item => item.course as Course);
+        
+        setCourses(adminCourses);
+        
+        // Fetch all students
+        console.log("Fetching students...");
+        const { data: studentsData, error: studentsError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', 'student')
+          .order('created_at', { ascending: false });
+        
+        if (studentsError) {
+          console.error("Error fetching students:", studentsError);
+          throw studentsError;
+        }
+        
+        console.log("Students data:", studentsData);
+        
+        // Ensure correct typing for roles
+        const typedStudents = (studentsData || []).map(student => ({
+          ...student,
+          role: ensureValidRole(student.role)
+        }));
+        
+        setStudents(typedStudents);
+
+        // Fetch groups count for this admin
+        const { data: groupsData, error: groupsError } = await supabase
+          .from('course_groups')
+          .select('id', { count: 'exact' })
+          .or(`created_by.eq.${profile.id},allowed_admin_id.eq.${profile.id}`);
+        
+        if (groupsError) {
+          console.error("Error fetching groups:", groupsError);
+        } else {
+          setTotalGroups(groupsData?.length || 0);
+        }
+        
+        setDataFetched(true);
+        console.log("Admin dashboard data fetch completed successfully");
+        
+      } catch (error) {
+        console.error('Error fetching admin dashboard data:', error);
         toast({
-          title: "Error fetching courses",
-          description: coursesError.message,
+          title: "Error",
+          description: "Failed to load dashboard data",
           variant: "destructive",
         });
+      } finally {
+        setLoading(false);
       }
+    };
+    
+    fetchAdminDashboardData();
+  }, [profile, user, authLoading, dataFetched, toast]);
+
+  // Handle course creation
+  const handleCreateCourse = async (data: CourseFormValues) => {
+    try {
+      console.log("Creating course with data:", data);
       
-      const { data: sessionsData, error: sessionsError } = await supabase
-        .from("sessions")
-        .select("*");
-        
-      if (sessionsError) {
-        console.error("Error fetching sessions:", sessionsError);
-      }
+      // Create the course
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .insert({
+          title: data.title,
+          description: data.description || null,
+          total_sessions: 0,
+        })
+        .select()
+        .single();
       
-      const processedCourses = coursesData?.map(course => {
-        const courseSessions = sessionsData?.filter(s => s.course_id === course.id) || [];
-        const sessionsWithActiveStatus = courseSessions.map(session => ({
-          id: session.id,
-          is_active: session.is_active !== undefined ? session.is_active : true
-        }));
-        const activeSessionsCount = courseSessions.filter(s => s.is_active !== false).length;
-        
-        return {
-          ...course,
-          sessions: sessionsWithActiveStatus,
-          activeSessions: activeSessionsCount
-        };
-      }) || [];
+      if (courseError) throw courseError;
       
-      setCourses(processedCourses);
-      
-      const { data: studentsData, error: studentsError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("role", "student");
-        
-      if (studentsError) {
-        console.error("Error fetching students:", studentsError);
-      } else if (studentsData) {
-        const { data: assignmentsData, error: assignmentsError } = await supabase
-          .from("course_assignments")
-          .select("*");
-          
-        if (assignmentsError) {
-          console.error("Error fetching course assignments:", assignmentsError);
-        }
-        
-        const { data: progressData, error: progressError } = await supabase
-          .from("session_progress")
-          .select("*");
-          
-        if (progressError) {
-          console.error("Error fetching session progress:", progressError);
-        } else if (progressData) {
-          setSessionProgress(progressData);
-        }
-        
-        const processedStudents = studentsData.map(student => {
-          const studentAssignments = assignmentsData?.filter(
-            assignment => assignment.student_id === student.id
-          ) || [];
-          
-          return {
-            ...student,
-            assignedCourses: studentAssignments.map(a => a.course_id)
-          };
+      // Create the admin-course relationship
+      const { error: adminCourseError } = await supabase
+        .from('admin_courses')
+        .insert({
+          admin_id: profile!.id,
+          course_id: courseData.id,
         });
-        
-        setStudents(processedStudents);
-        setFilteredStudents(processedStudents);
-        setCourseAssignments(assignmentsData || []);
-      }
       
-      const { data: rankingsData, error: rankingsError } = await supabase
-        .from("student_rankings")
+      if (adminCourseError) throw adminCourseError;
+      
+      // Refetch courses data
+      const { data: adminCoursesData, error: fetchError } = await supabase
+        .from('admin_courses')
         .select(`
-          student_id,
-          total_points,
-          sessions_completed,
-          quizzes_completed,
-          profiles:student_id (name, email, student_code)
+          course:courses(*)
         `)
-        .order("total_points", { ascending: false });
-        
-      if (rankingsError) {
-        console.error("Error fetching student rankings:", rankingsError);
-      } else if (rankingsData) {
-        const formattedRankings: StudentRank[] = rankingsData.map((ranking, index) => ({
-          student_id: ranking.student_id,
-          name: ranking.profiles?.name || null,
-          email: ranking.profiles?.email || null,
-          student_code: ranking.profiles?.student_code || null,
-          total_points: ranking.total_points,
-          sessions_completed: ranking.sessions_completed,
-          quizzes_completed: ranking.quizzes_completed,
-          rank: index + 1
-        }));
-        
-        setStudentRankings(formattedRankings);
-      }
+        .eq('admin_id', profile!.id);
+      
+      if (fetchError) throw fetchError;
+      
+      const adminCourses = (adminCoursesData || [])
+        .filter(item => item.course)
+        .map(item => item.course as Course);
+      
+      setCourses(adminCourses);
+      setOpenCourseDialog(false);
+      form.reset();
+      
+      toast({
+        title: "Course created",
+        description: "Your course was created successfully",
+      });
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error creating course:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch data. Please try again.",
+        description: "Failed to create course",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
-  };
-  
-  useEffect(() => {
-    if (!searchQuery) {
-      setFilteredStudents(students);
-      return;
-    }
-    
-    const filtered = students.filter(
-      (student) =>
-        (student.name && student.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (student.phone && student.phone.includes(searchQuery))
-    );
-    setFilteredStudents(filtered);
-  }, [searchQuery, students]);
-  
-  const getCourseById = (id: string) => {
-    return courses.find((course) => course.id === id)?.title || "Unknown Course";
-  };
-  
-  const calculateStudentProgress = (student: Student) => {
-    const studentCourseIds = student.assignedCourses || [];
-    if (studentCourseIds.length === 0) return 0;
-    
-    const completedSessions = sessionProgress.filter(
-      progress => progress.student_id === student.id
-    ).length;
-    
-    return studentCourseIds.length > 0 ? 
-      Math.round((completedSessions / studentCourseIds.length) * 100) : 0;
   };
 
-  const handleEditAssignments = (student: Student) => {
-    setSelectedStudent({
-      id: student.id,
-      name: student.name || "Unnamed Student",
-      assignedCourses: student.assignedCourses || []
-    });
-  };
-  
-  const handleManageSessions = (course: Course) => {
-    setSelectedCourse({
-      id: course.id,
-      title: course.title
-    });
-  };
-  
-  const handleCreateQuiz = (sessionId: string, sessionTitle: string) => {
-    setSelectedSession({
-      id: sessionId,
-      title: sessionTitle
-    });
-  };
-  
-  if (loading) {
+  // Show loading state
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <p>Loading dashboard data...</p>
-        </main>
-        <Footer />
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-[80vh]">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-t-academy-blue border-r-transparent border-b-academy-orange border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-lg text-gray-600">Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
-  
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+    <DashboardLayout>
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-1">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage your courses, groups and track progress</p>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              className="bg-academy-blue hover:bg-blue-600"
+              onClick={() => setOpenCourseDialog(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" /> Add Course
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/admin/groups">
+                <UserPlus className="w-4 h-4 mr-2" /> Manage Groups
+              </Link>
+            </Button>
+          </div>
+        </div>
         
-        <Tabs defaultValue="courses" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="students">Students</TabsTrigger>
-            <TabsTrigger value="rankings">Rankings</TabsTrigger>
-          </TabsList>
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatsCard 
+            title="My Courses"
+            value={courses.length}
+            icon={Book}
+            colorVariant="blue"
+          />
+          <StatsCard 
+            title="Total Students"
+            value={students.length}
+            icon={Users}
+            colorVariant="orange"
+          />
+          <StatsCard 
+            title="My Groups"
+            value={totalGroups}
+            icon={UserPlus}
+            colorVariant="purple"
+          />
+          <StatsCard 
+            title="Active Students"
+            value={students.filter(s => s.total_points > 0).length}
+            icon={Users}
+            description="Students with activity"
+            colorVariant="green"
+          />
+        </div>
+        
+        {/* Recent Students */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Recent Students</h2>
+            <Button variant="outline" asChild>
+              <Link to="/admin/students">View All</Link>
+            </Button>
+          </div>
           
-          <TabsContent value="courses">
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-semibold">All Courses</h2>
-              <Button
-                className="bg-academy-orange hover:bg-orange-600 text-white px-4 py-2 rounded-md transition-colors"
-                onClick={() => setShowAddCourse(true)}
-              >
-                Add New Course
-              </Button>
-            </div>
-            
-            {showAddCourse && (
-              <div className="mb-6">
-                <AddCourseForm 
-                  onClose={() => setShowAddCourse(false)}
-                  onCoursesUpdated={fetchData}
-                />
-              </div>
-            )}
-            
-            {courses.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courses.map((course) => (
-                  <div key={course.id} className="relative">
-                    <CourseCard 
-                      course={{
-                        id: course.id,
-                        title: course.title,
-                        description: course.description,
-                        thumbnail_url: course.thumbnail_url,
-                        created_at: course.created_at,
-                        sessions: course.sessions
-                      }} 
-                      activeSessions={course.activeSessions}
-                    />
-                    <Button 
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-2 right-2 bg-white bg-opacity-90 hover:bg-white"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleManageSessions(course);
-                      }}
-                    >
-                      <FileEdit className="h-4 w-4 mr-1" />
-                      Sessions
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-8 bg-gray-50 rounded-lg">
-                <p className="text-gray-500">No courses available. Create your first course!</p>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="students">
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">All Students</h2>
-                <Button
-                  className="bg-academy-blue hover:bg-blue-600 text-white flex items-center"
-                  onClick={() => setShowMultiAssign(true)}
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Assign Course to Multiple Students
-                </Button>
-              </div>
-              
-              <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <Input
-                  placeholder="Search students by name or phone number..."
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              
-              {filteredStudents.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredStudents.map((student) => (
-                    <Card key={student.id} className="overflow-hidden">
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center">
-                            <UserCircle className="h-12 w-12 text-gray-400 mr-4" />
-                            <div>
-                              <h3 className="font-semibold text-lg">{student.name || "Unnamed Student"}</h3>
-                              <p className="text-gray-500 text-sm">{student.email || "No email"}</p>
-                              <p className="text-gray-500 text-sm">{student.phone || "No phone"}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {calculateStudentProgress(student)}% Complete
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-4">
-                          <h4 className="font-medium text-sm text-gray-700 mb-2">Assigned Courses:</h4>
-                          <ul className="space-y-1">
-                            {student.assignedCourses && student.assignedCourses.length > 0 ? (
-                              student.assignedCourses.map((courseId) => (
-                                <li key={courseId} className="flex items-center text-sm">
-                                  <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                                  {getCourseById(courseId)}
-                                </li>
-                              ))
-                            ) : (
-                              <li className="text-sm text-gray-500">No courses assigned</li>
-                            )}
-                          </ul>
-                        </div>
-                        
-                        <div className="mt-4 flex justify-end">
-                          <Button 
-                            onClick={() => handleEditAssignments(student)}
-                            className="text-academy-blue hover:text-blue-700 text-sm font-medium"
-                            variant="ghost"
-                          >
-                            Edit Assignments
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+          {students.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {students.slice(0, 5).map((student) => (
+                    <tr key={student.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">{student.unique_id || 'N/A'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{student.total_points}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(student.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center p-8 bg-gray-50 rounded-lg">
-                  <p className="text-gray-500">No students found matching your search.</p>
-                </div>
-              )}
+                </tbody>
+              </table>
             </div>
-          </TabsContent>
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <h3 className="font-medium text-gray-900 mb-1">No students yet</h3>
+              <p className="text-gray-600">
+                There are no students registered in the system.
+              </p>
+            </div>
+          )}
+        </div>
+        
+        {/* My Courses */}
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">My Courses</h2>
+            <Button variant="outline" asChild>
+              <Link to="/admin/courses">View All</Link>
+            </Button>
+          </div>
           
-          <TabsContent value="rankings">
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold flex items-center">
-                  <Trophy className="h-6 w-6 mr-2 text-yellow-500" /> 
-                  Student Rankings
-                </h2>
-                <Button
-                  onClick={fetchData}
-                  variant="outline"
-                  size="sm"
-                >
-                  Refresh Rankings
-                </Button>
-              </div>
-              
-              <div>
-                <StudentsRankingTable 
-                  students={studentRankings} 
+          {courses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.slice(0, 3).map((course) => (
+                <AdminCourseCard 
+                  key={course.id} 
+                  course={course}
                 />
-              </div>
+              ))}
             </div>
-          </TabsContent>
-        </Tabs>
-        
-        {selectedStudent && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="max-w-2xl w-full">
-              <AssignCourseForm
-                studentId={selectedStudent.id}
-                studentName={selectedStudent.name}
-                onClose={() => setSelectedStudent(null)}
-                onAssignmentUpdated={fetchData}
-                assignedCourseIds={selectedStudent.assignedCourses}
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+              <h3 className="font-medium text-gray-900 mb-1">No courses yet</h3>
+              <p className="text-gray-600">
+                Create your first course to get started.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Create Course Dialog */}
+      <Dialog open={openCourseDialog} onOpenChange={setOpenCourseDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Course</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreateCourse)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course Title</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Introduction to Coding" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </div>
-        )}
-        
-        {showMultiAssign && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="max-w-4xl w-full">
-              <MultiAssignCourseForm
-                onClose={() => setShowMultiAssign(false)}
-                onAssignmentsUpdated={fetchData}
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder="A brief description of the course content and objectives"
+                        rows={4}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </div>
-        )}
-        
-        {selectedCourse && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="max-w-4xl w-full my-8">
-              <SessionsManager
-                course={selectedCourse}
-                onClose={() => setSelectedCourse(null)}
-                onCreateQuiz={handleCreateQuiz}
-              />
-            </div>
-          </div>
-        )}
-        
-        {selectedSession && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-            <div className="max-w-3xl w-full my-8">
-              <QuizForm
-                sessionId={selectedSession.id}
-                sessionTitle={selectedSession.title}
-                onClose={() => setSelectedSession(null)}
-                onSuccess={() => {
-                  setSelectedSession(null);
-                  fetchData();
-                }}
-              />
-            </div>
-          </div>
-        )}
-      </main>
-      
-      <Footer />
-    </div>
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setOpenCourseDialog(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Create Course</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    </DashboardLayout>
   );
 };
 

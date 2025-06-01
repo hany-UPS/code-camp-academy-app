@@ -1,111 +1,98 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
+import type { Tables } from '@/integrations/supabase/types';
+import { Progress } from "@/components/ui/progress";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnail?: string;
-  thumbnail_url?: string | null;
-  sessions?: Array<any>;
-  createdAt?: string;
-  created_at?: string;
-}
+
+import { Database } from '@/types/supabase';
+
+type SupabaseStudentCourse = Database['public']['Tables']['student_courses']['Row'];
+
+type StudentCourse = SupabaseStudentCourse & {
+  hide_new_sessions?: boolean; // ✅ extend locally
+};
+
+type Course = Tables<'courses'>;
 
 interface CourseCardProps {
   course: Course;
-  progress?: {
-    completed: number;
-    total: number;
-  };
-  activeSessions?: number; // New prop to track active sessions
+  studentCourse?: StudentCourse;
 }
 
-const CourseCard: React.FC<CourseCardProps> = ({ course, progress, activeSessions }) => {
-  const { id, title, description } = course;
-  
-  // Handle different property naming conventions and potential undefined values
-  const thumbnail = course.thumbnail || course.thumbnail_url || "/placeholder.svg";
-  const createdDate = course.createdAt || course.created_at || new Date().toISOString();
-  const sessionsCount = (course.sessions || []).length;
-  const activeSessionsCount = activeSessions !== undefined ? activeSessions : sessionsCount;
-  
-  // Format date
-  const formattedDate = new Date(createdDate).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+export function CourseCard({ course, studentCourse }: CourseCardProps) {
+  const progress = studentCourse?.progress || 0;
+  const totalSessions = course.total_sessions || 0;
+  const progressPercentage = totalSessions > 0 ? Math.round((progress / totalSessions) * 100) : 0;
+  const isCompleted = totalSessions > 0 && progress === totalSessions;
+  const isLocked = studentCourse?.hide_new_sessions || false;
   
   return (
-    <Card className="overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-lg cursor-pointer">
-      <Link to={`/courses/${id}`}>
-        <div className="aspect-video w-full overflow-hidden">
-          <img 
-            src={thumbnail} 
-            alt={title}
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-            onError={(e) => {
-              // Fallback to placeholder if image fails to load
-              (e.target as HTMLImageElement).src = "/placeholder.svg";
-            }}
-          />
-        </div>
-        <CardHeader className="pb-1">
-          <div className="flex justify-between items-start">
-            <CardTitle className="text-lg text-left font-bold text-gray-800">
-              {title}
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="pb-2">
-          <p className="text-sm text-gray-600 line-clamp-2 text-left">
-            {description || "No description available"}
-          </p>
-          
-          <div className="flex items-center mt-3 text-xs text-gray-500 space-x-3">
-            <div className="flex items-center">
-              <BookOpen size={14} className="mr-1" />
-              <span>{activeSessionsCount} sessions</span>
+    <Card className="overflow-hidden h-full flex flex-col">
+      <CardHeader className="bg-gradient-to-r from-academy-blue to-academy-orange p-4">
+        <CardTitle className="text-white truncate">{course.title}</CardTitle>
+        <CardDescription className="text-white/80">
+          {course.total_sessions} {course.total_sessions === 1 ? 'session' : 'sessions'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-4 flex-grow">
+        <p className="text-sm text-gray-600 mb-4 line-clamp-3">
+          {course.description || "No description provided"}
+        </p>
+        {studentCourse && (
+          <div className="mt-2">
+            <div className="flex justify-between text-xs mb-1">
+              <span>Progress</span>
+              <span>{progressPercentage}%</span>
             </div>
-            <div className="flex items-center">
-              <Clock size={14} className="mr-1" />
-              <span>Added {formattedDate}</span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="pt-0">
-          <div className="w-full">
-            {progress && (
-              <>
-                <div className="flex justify-between items-center mb-1 text-xs">
-                  <span className="text-gray-600">{progress.completed} of {progress.total} completed</span>
-                  <span className="font-medium">
-                    {Math.round((progress.completed / progress.total) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-academy-blue rounded-full h-2" 
-                    style={{ width: `${(progress.completed / progress.total) * 100}%` }}
-                  />
-                </div>
-              </>
+            <Progress value={progressPercentage} className="h-2" />
+            {isCompleted && (
+              <Badge className="mt-2 bg-green-100 text-green-800 hover:bg-green-100">
+                Completed
+              </Badge>
             )}
-            {!progress && (
-              <Badge variant="outline" className="bg-academy-light-blue text-academy-blue border-academy-blue">
-                New Course
+            {isLocked && (
+              <Badge className="mt-2 bg-red-100 text-red-800 hover:bg-red-100">
+                Temporarily Locked
               </Badge>
             )}
           </div>
-        </CardFooter>
-      </Link>
+        )}
+      </CardContent>
+      <CardFooter className="p-4 pt-0 flex justify-end">
+        {isLocked ? (
+          <Button disabled variant="secondary">
+            Course Locked
+          </Button>
+        ) : (
+          <Button asChild>
+            <Link to={`/courses/${course.id}`}>
+              {studentCourse ? (isCompleted ? "Review Course" : "Continue Learning") : "Enroll Now"}
+            </Link>
+          </Button>
+        )}
+      </CardFooter>
     </Card>
   );
-};
+}
 
-export default CourseCard;
+// Create a wrapper component that adds admin functionality
+export function AdminCourseCardWrapper({ courseId, children }: { courseId: string, children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {children}
+      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+        <Button 
+          className="bg-academy-blue hover:bg-blue-600"
+          asChild
+        >
+          <Link to={`/admin/courses/${courseId}`}>
+            Manage Course
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}

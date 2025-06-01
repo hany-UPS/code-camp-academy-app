@@ -23,6 +23,14 @@ export default {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
+				// These match the hex codes from your provided CSS
+				'academy-orange': '#F7941D',
+				'academy-blue': '#004B8D',
+				'academy-light-blue': '#00CFFF',
+				'academy-bg-light': '#e6f7fb', // For the background of the certificate
+				// You might already have 'academy-orange' and 'academy-blue'
+				// based on your leaderboard component's `from-academy-orange to-academy-blue` gradient
+			
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
@@ -63,12 +71,14 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom academy colors
+				// Custom UPS Academy colors
 				academy: {
 					orange: '#F97316',
 					blue: '#0EA5E9',
-					'light-orange': '#FFEDD5',
-					'light-blue': '#E0F2FE',
+					lightOrange: '#FFEDD5',
+					lightBlue: '#E0F2FE',
+					gray: '#F3F4F6',
+					darkGray: '#374151'
 				}
 			},
 			borderRadius: {
@@ -93,34 +103,28 @@ export default {
 						height: '0'
 					}
 				},
-				'bounce-slow': {
-					'0%, 100%': { 
-						transform: 'translateY(0)',
+				'bounce-small': {
+					'0%, 100%': {
+						transform: 'translateY(-5%)',
+						animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
 					},
 					'50%': {
-						transform: 'translateY(-10px)'
-					}
-				},
-				'fade-in': {
-					'0%': {
-						opacity: '0',
-						transform: 'translateY(10px)'
-					},
-					'100%': {
-						opacity: '1',
-						transform: 'translateY(0)'
+						transform: 'translateY(0)',
+						animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
 					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'bounce-slow': 'bounce-slow 3s infinite ease-in-out',
-				'fade-in': 'fade-in 0.5s ease-out'
+				'bounce-small': 'bounce-small 1s infinite'
 			},
-			fontFamily: {
-				'nunito': ['Nunito', 'sans-serif'],
-			},
+
+			// If you want custom font families, define them here
+        fontFamily: {
+        'sans': ['Arial', 'sans-serif'],
+        'serif': ['Georgia', 'serif'],
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
